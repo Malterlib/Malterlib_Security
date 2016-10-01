@@ -95,14 +95,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 
 		if (Status == noErr)
 		{
-			bint bPasswordEqual = Password == (NMib::NStr::CStrSecure::CChar const*)pExistingPassword;
+			NMib::NStr::CStrSecure ExistingPassword{(ch8 const *)pExistingPassword, nExistingPasswordBytes};
+			bint bPasswordEqual = Password == ExistingPassword;
 
 			NMem::fg_ObjectSet((uint8*)pExistingPassword, 0, nExistingPasswordBytes);
 
 			SecKeychainItemFreeContent(NULL, pExistingPassword);
 
 			if (bPasswordEqual)
+			{
+				CFRelease(ItemRef);
 				return ESecurePassword_OK; // Password is already correct.
+			}
 
 			Status = SecKeychainItemModifyAttributesAndData(
 							ItemRef

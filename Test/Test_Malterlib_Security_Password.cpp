@@ -42,8 +42,10 @@ namespace
 				{
 					DMibTestPath("Store");
 					NSys::ESecurePassword StoreRet = NSys::fg_SecurePassword_Store(TestKey, TestPassword);
-
 					DMibTest(DMibExpr(StoreRet) == DMibExpr(NSys::ESecurePassword_OK));
+
+					NSys::ESecurePassword StoreAgainRet = NSys::fg_SecurePassword_Store(TestKey, TestPassword);
+					DMibTest(DMibExpr(StoreAgainRet) == DMibExpr(NSys::ESecurePassword_OK));
 				}
 				{
 					DMibTestPath("Exists");
