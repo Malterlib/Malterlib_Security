@@ -336,9 +336,10 @@ namespace
 		return Result;
 	}
 
-	static int fg_GetHighestSecondColumnValue(NMib::NStr::CStr &_Data)
+	NMib::NContainer::TCSet<int> fg_GetCurrentIDs(NMib::NStr::CStr &_Data)
 	{
-		int Value = 0;
+		NMib::NContainer::TCSet<int> IDs;
+
 		while (!_Data.f_IsEmpty())
 		{
 			int NewLinePos = _Data.f_FindReverse("\n");
@@ -347,12 +348,36 @@ namespace
 			_Data = _Data.f_Left(NewLinePos);
 			int SpacePos = _Data.f_FindReverse(" ");
 			NMib::NStr::CStr ValueString = _Data.f_Right(_Data.f_GetLen() - SpacePos - 1);
-			int NewValue = ValueString.f_ToInt();
-			if (NewValue > Value && NewValue < 500)
-				Value = NewValue;
+			int NewValue = ValueString.f_ToInt(int(-1));
+			if (NewValue >= 0)
+				IDs[NewValue];
 		}
 		
-		return Value;
+		return IDs;
+	}
+
+	int fg_GetFreeID(NMib::NContainer::TCSet<int> const &_CurrentIDs)
+	{
+		if (NMib::CSystem::ms_PlatformVersion < 10'10'00)
+		{
+			for (int FreeID = 499; FreeID >= 0; --FreeID)
+			{
+				if (!_CurrentIDs.f_FindEqual(FreeID))
+					return FreeID;
+			}
+			DMibError("No free ID found below 500");
+		}
+		else
+		{
+			for (int FreeID = 501; FreeID < 8192; ++FreeID)
+			{
+				if (!_CurrentIDs.f_FindEqual(FreeID))
+					return FreeID;
+			}
+
+			DMibError("No free ID found");
+		}
+		return -1;
 	}
 }
 
@@ -401,8 +426,9 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 		{
 			DMibError(NMib::NStr::CStr::CFormat("Failed to list group: {}") << StdErr);
 		}
-		
-		GID = fg_GetHighestSecondColumnValue(StdOut) + 1;
+
+		auto CurrentIDs = fg_GetCurrentIDs(StdOut);
+		GID = fg_GetFreeID(CurrentIDs);
 	}
 	
 	auto fl_dsclCall
@@ -522,11 +548,8 @@ void NMib::NSys::fg_UserManagement_CreateUser(
 			DMibError(NMib::NStr::CStr::CFormat("Failed to list users: {}") << StdErr);
 		}
 		
-		UniqueID = fg_GetHighestSecondColumnValue(StdOut) + 1;
-		
-		if (UniqueID >= 500 || UniqueID == 0)
-			DMibError("No free user id found below 500");
-		
+		auto CurrentIDs = fg_GetCurrentIDs(StdOut);
+		UniqueID = fg_GetFreeID(CurrentIDs);
 	}
 	
 	auto fdsclCall
