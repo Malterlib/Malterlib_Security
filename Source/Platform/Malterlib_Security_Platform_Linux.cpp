@@ -4,13 +4,15 @@
 #include <Mib/Core/Core>
 #include <Mib/Process/ProcessLaunch>
 
-void NMib::NSys::fg_UserManagement_CreateUser(
-								  NMib::NStr::CStr const &_InGroupName,
-								  NMib::NStr::CStr const &_UserName,
-								  NMib::NStr::CStr const &_Password,
-								  NMib::NStr::CStr const &_FullName,
-								  NMib::NStr::CStr const &_HomeDirectory,
-								  NMib::NStr::CStr &_ReturnUID)
+void NMib::NSys::fg_UserManagement_CreateUser
+	(
+		NMib::NStr::CStr const &_InGroupName,
+		NMib::NStr::CStr const &_UserName,
+		NMib::NStr::CStrSecure const &_Password,
+		NMib::NStr::CStr const &_FullName,
+		NMib::NStr::CStr const &_HomeDirectory,
+		NMib::NStr::CStr &_ReturnUID
+	)
 {
 	NContainer::TCVector<NMib::NStr::CStr> Flags;
 	

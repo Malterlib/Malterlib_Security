@@ -18,8 +18,6 @@ namespace
 	NMib::TCSubSystem<CSubSystem_Security_Platform_Windows_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager> g_SubSystem_Security_Platform_Windows_SecurePassword = {DAggregateInit};
 }
 
-
-
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const& _Location)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_Windows_SecurePassword;
@@ -206,19 +204,3 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 
 	return NMib::NSys::ESecurePassword_NotFound;
 }
-
-#if 0
-void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &_ReturnGID);
-void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupName);
-void NMib::NSys::fg_UserManagement_CreateUser(
-								  NMib::NStr::CStr const &_InGroupName,
-								  NMib::NStr::CStr const &_UserName,
-								  NMib::NStr::CStr const &_Password,
-								  NMib::NStr::CStr const &_FullName,
-								  NMib::NStr::CStr const &_HomeDirectory,
-								  NMib::NStr::CStr &_ReturnUID);
-void NMib::NSys::fg_UserManagement_DeleteUser(NMib::NStr::CStr const &_UserName);
-void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName);
-void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName);
-bint NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name);
-#endif
