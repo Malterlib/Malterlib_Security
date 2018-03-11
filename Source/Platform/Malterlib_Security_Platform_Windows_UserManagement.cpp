@@ -5,6 +5,7 @@
 #include <Mib/Core/PlatformSpecific/WindowsError>
 #include <Mib/Core/PlatformSpecific/WindowsString>
 #include <Mib/Core/PlatformSpecific/WindowsFilePath>
+#include <Mib/Cryptography/Hashes/SHA>
 
 #include <Windows.h>
 #include <lmcons.h>
@@ -17,6 +18,19 @@
 #pragma comment(lib, "netapi32.lib")
 
 using namespace NMib;
+
+NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr &_UserName)
+{
+	if (_UserName.f_GetLen() <= 20)
+		return _UserName;
+
+	NMib::NDataProcessing::CHash_SHA256 Hash;
+	Hash.f_AddData(_UserName.f_GetStr(), _UserName.f_GetLen());
+
+	auto Digest = Hash.f_GetDigest();
+
+	return _UserName.f_Left(12) + Digest.f_GetString().f_Left(8);
+}
 
 void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
 {
