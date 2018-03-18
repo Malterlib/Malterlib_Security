@@ -4,7 +4,7 @@
 #include <Mib/Core/Core>
 #include <Mib/Process/ProcessLaunch>
 
-NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr &_UserName)
+NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr const &_UserName)
 {
 	return _UserName;
 }

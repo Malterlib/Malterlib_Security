@@ -19,7 +19,7 @@
 
 using namespace NMib;
 
-NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr &_UserName)
+NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr const &_UserName)
 {
 	if (_UserName.f_GetLen() <= 20)
 		return _UserName;
