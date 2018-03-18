@@ -21,7 +21,7 @@ namespace NMib::NSecurity
 
 		NDataProcessing::CHash_SHA256 Hash;
 
-		CStr Salt = "MalterlibAppManagerUserGroupNameTransform";
+		CStr Salt = "MalterlibSecurityUserGroupNameTransform";
 
 		Hash.f_AddData(Salt.f_GetStr(), Salt.f_GetLen());
 		Hash.f_AddData(_DefaultDirectory.f_GetStr(), _DefaultDirectory.f_GetLen());
