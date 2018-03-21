@@ -481,6 +481,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		, NMib::NStr::CStr const &_FullName
 		, NMib::NStr::CStr const &_HomeDirectory
 		, NMib::NStr::CStr &_ReturnUID
+	 	, EUserManagementCreateUserFlag _Flags
 	)
 {
 	int PrimaryGroupID = -1;
@@ -559,7 +560,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		UniqueID = fg_GetFreeID(CurrentIDs);
 	}
 	
-	auto fdsclCall
+	auto fCallDscl
 		= [&](NMib::NContainer::TCVector<NMib::NStr::CStr> const &_Command)
 		{
 			NMib::NStr::CStr StdOut;
@@ -583,14 +584,14 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		}
 	;
 	
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID", NMib::NStr::CStr::fs_ToStr(UniqueID)));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "PrimaryGroupID", NMib::NStr::CStr::fs_ToStr(PrimaryGroupID)));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UserShell", "/usr/bin/false"));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "NFSHomeDirectory", _HomeDirectory));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "RealName", _FullName));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "IsHidden", "1"));
-	fdsclCall(NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "Password", "\\*"));
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID", NMib::NStr::CStr::fs_ToStr(UniqueID)});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "PrimaryGroupID", NMib::NStr::CStr::fs_ToStr(PrimaryGroupID)});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UserShell", (_Flags & EUserManagementCreateUserFlag_ShellAccess) ? "/bin/bash" : "/bin/false"});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "NFSHomeDirectory", _HomeDirectory});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "RealName", _FullName});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "IsHidden", "1"});
+	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "Password", "\\*"});
 
 	_ReturnUID = NMib::NStr::CStr::fs_ToStr(UniqueID);
 	fg_UserManagement_ClearUserCache();

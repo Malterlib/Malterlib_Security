@@ -11,12 +11,13 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 
 void NMib::NSys::fg_UserManagement_CreateUser
 	(
-		NMib::NStr::CStr const &_InGroupName,
-		NMib::NStr::CStr const &_UserName,
-		NMib::NStr::CStrSecure const &_Password,
-		NMib::NStr::CStr const &_FullName,
-		NMib::NStr::CStr const &_HomeDirectory,
-		NMib::NStr::CStr &_ReturnUID
+		NMib::NStr::CStr const &_InGroupName
+		, NMib::NStr::CStr const &_UserName
+		, NMib::NStr::CStrSecure const &_Password
+		, NMib::NStr::CStr const &_FullName
+		, NMib::NStr::CStr const &_HomeDirectory
+		, NMib::NStr::CStr &_ReturnUID
+	 	, EUserManagementCreateUserFlag _Flags
 	)
 {
 	NContainer::TCVector<NMib::NStr::CStr> Flags;
@@ -26,7 +27,8 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		, "-c", _FullName	// Name in comment
 		, "-g", _InGroupName		// Login group
 		, "-r"				// System account
-		, "-s", "/bin/false"	// No login shell
+		, "-s"
+		, (_Flags & EUserManagementCreateUserFlag_ShellAccess) ? "/bin/bash" : "/bin/false"
 	);
 
 	if (!_Password.f_IsEmpty())

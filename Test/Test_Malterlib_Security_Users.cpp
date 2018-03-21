@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB 
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Test/Performance>
@@ -147,6 +147,7 @@ namespace
 									, "Test FullName"
 									, NMib::NFile::CFile::fs_GetProgramDirectory()
 									, CreatedUID
+									, NMib::NSys::EUserManagementCreateUserFlag_None
 								)
 							)
 						)
@@ -164,7 +165,9 @@ namespace
 									, TestUser
 									, TestPassword
 									, "Test FullName"
-									, NMib::NFile::CFile::fs_GetProgramDirectory(), ReturnUID
+									, NMib::NFile::CFile::fs_GetProgramDirectory()
+									, ReturnUID
+									, NMib::NSys::EUserManagementCreateUserFlag_None
 								)
 							)
 						)
