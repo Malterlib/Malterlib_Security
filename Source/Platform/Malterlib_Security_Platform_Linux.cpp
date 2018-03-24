@@ -6,7 +6,16 @@
 
 NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr const &_UserName)
 {
-	return _UserName;
+	// We limit to 32 characters here, because that is what tar supports
+	if (_UserName.f_GetLen() <= 32)
+		return _UserName;
+
+	NMib::NDataProcessing::CHash_SHA256 Hash;
+	Hash.f_AddData(_UserName.f_GetStr(), _UserName.f_GetLen());
+
+	auto Digest = Hash.f_GetDigest();
+
+	return _UserName.f_Left(24) + Digest.f_GetString().f_Left(8);
 }
 
 void NMib::NSys::fg_UserManagement_CreateUser
