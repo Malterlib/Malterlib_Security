@@ -482,6 +482,11 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 	return _UserName.f_Left(24) + Digest.f_GetString().f_Left(8);
 }
 
+NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CStr const &_GroupName)
+{
+	return fg_UserManagement_MakeValidUserName(_GroupName);
+}
+
 void NMib::NSys::fg_UserManagement_CreateUser
 	(
 		NMib::NStr::CStr const &_InGroupName

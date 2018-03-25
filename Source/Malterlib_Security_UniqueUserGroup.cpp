@@ -51,9 +51,9 @@ namespace NMib::NSecurity
 			return {};
 
 #ifdef DPlatformFamily_Windows
-		return "Group_" + f_TransformUserGroup(_Name);
+		return NSys::fg_UserManagement_MakeValidGroupName("Group_" + f_TransformUserGroup(_Name));
 #else
-		return f_TransformUserGroup(_Name);
+		return NSys::fg_UserManagement_MakeValidGroupName(f_TransformUserGroup(_Name));
 #endif
 	}
 }

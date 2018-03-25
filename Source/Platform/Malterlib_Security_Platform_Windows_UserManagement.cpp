@@ -32,6 +32,20 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 	return _UserName.f_Left(12) + Digest.f_GetString().f_Left(8);
 }
 
+NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CStr const &_GroupName)
+{
+	// We limit to 32 characters here, because that is what tar supports
+	if (_GroupName.f_GetLen() <= 32)
+		return _GroupName;
+
+	NMib::NDataProcessing::CHash_SHA256 Hash;
+	Hash.f_AddData(_GroupName.f_GetStr(), _GroupName.f_GetLen());
+
+	auto Digest = Hash.f_GetDigest();
+
+	return _GroupName.f_Left(24) + Digest.f_GetString().f_Left(8);
+}
+
 void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
 {
 	LOCALGROUP_INFO_0 GroupInfo;
