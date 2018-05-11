@@ -94,7 +94,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	UserInfo.usri1_password = Password.f_GetStrUniqueWritable();
 	UserInfo.usri1_comment = Comment.f_GetStrUniqueWritable();
 	UserInfo.usri1_priv = USER_PRIV_USER;
-	UserInfo.usri1_flags = UF_SCRIPT;
+	UserInfo.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD;
 	
 	uint32 ParmError = 0;
 	NET_API_STATUS Status = NetUserAdd(nullptr, 1, (uint8 *)&UserInfo, &ParmError);
