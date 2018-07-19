@@ -201,15 +201,29 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealUser()
 	if (!LookupAccountSid(nullptr, TokenUserInfo.User.Sid, UserName.f_GetStr(8192 + 1), &UserNameSize, ReferencedDomainName.f_GetStr(8192+1), &ReferencedDomainNameSize, &AccountType))
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from LookupAccountSid(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
-	return UserName;
+	using namespace ::NMib::NStr;
+	if (ReferencedDomainName.f_IsEmpty())
+		return UserName;
+	else
+		return "{}\\{}"_f << ReferencedDomainName << UserName;
 }
 
 NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(fg_UserManagement_GetProcessRealUser());
 
+	NMib::NStr::CWStr DomainName;
+	ch16 const *pDomainName = nullptr;
+	if (UserName.f_FindChar('\\') >= 0)
+	{
+		auto Split = UserName.f_Split("\\");
+		DomainName = Split[0];
+		UserName = Split[1];
+		pDomainName = DomainName.f_GetStr();
+	}
+
 	uint8 *pData = nullptr;
-	NET_API_STATUS Status = NetUserGetInfo(nullptr, UserName.f_GetStr(), 10, &pData);
+	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 10, &pData);
 
 	auto Cleanup = g_OnScopeExit > [&]
 		{
@@ -219,7 +233,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 	;
 
 	if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserGetInfo({}): {}") << UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
 	USER_INFO_10 &UserInfo = *((USER_INFO_10 *)pData);
 
@@ -263,7 +277,11 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 		if (!LookupAccountSid(nullptr, TokenPrimaryInfo.PrimaryGroup, GroupName.f_GetStr(8192 + 1), &GroupNameSize, ReferencedDomainName.f_GetStr(8192+1), &ReferencedDomainNameSize, &AccountType))
 			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from LookupAccountSid(Get process real group): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
-		return GroupName;
+		using namespace ::NMib::NStr;
+		if (ReferencedDomainName.f_IsEmpty())
+			return GroupName;
+		else
+			return "{}\\{}"_f << ReferencedDomainName << GroupName;
 	}
 }
 
@@ -302,8 +320,18 @@ bint NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 {
 	NMib::NStr::CWStr GroupName = NMib::NStr::NPlatform::fg_StrToWindows(_GroupName);
 
+	NMib::NStr::CWStr DomainName;
+	ch16 const *pDomainName = nullptr;
+	if (GroupName.f_FindChar('\\') >= 0)
+	{
+		auto Split = GroupName.f_Split("\\");
+		DomainName = Split[0];
+		GroupName = Split[1];
+		pDomainName = DomainName.f_GetStr();
+	}
+
 	uint8 *pData = nullptr;
-	NET_API_STATUS Status = NetLocalGroupGetInfo(nullptr, GroupName.f_GetStr(), 0, &pData);
+	NET_API_STATUS Status = NetLocalGroupGetInfo(pDomainName, GroupName.f_GetStr(), 0, &pData);
 
 	auto Cleanup = g_OnScopeExit > [&]
 		{
@@ -315,7 +343,7 @@ bint NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 	if (Status == NERR_GroupNotFound)
 		return false;
 	else if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo({}): {}") << GroupName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
 	o_ReturnGID = _GroupName;
 	return true;
@@ -325,8 +353,18 @@ bint NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib:
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 
+	NMib::NStr::CWStr DomainName;
+	ch16 const *pDomainName = nullptr;
+	if (UserName.f_FindChar('\\') >= 0)
+	{
+		auto Split = UserName.f_Split("\\");
+		DomainName = Split[0];
+		UserName = Split[1];
+		pDomainName = DomainName.f_GetStr();
+	}
+
 	uint8 *pData = nullptr;
-	NET_API_STATUS Status = NetUserGetInfo(nullptr, UserName.f_GetStr(), 0, &pData);
+	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 0, &pData);
 
 	auto Cleanup = g_OnScopeExit > [&]
 		{
@@ -338,7 +376,7 @@ bint NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib:
 	if (Status == NERR_UserNotFound)
 		return false;
 	else if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserGetInfo({}): {}") << UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
 	o_ReturnUID = _UserName;
 	return true;
@@ -348,12 +386,22 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 
+	NMib::NStr::CWStr DomainName;
+	ch16 const *pDomainName = nullptr;
+	if (UserName.f_FindChar('\\') >= 0)
+	{
+		auto Split = UserName.f_Split("\\");
+		DomainName = Split[0];
+		UserName = Split[1];
+		pDomainName = DomainName.f_GetStr();
+	}
+
 	uint8 *pData = nullptr;
 	uint32 EntriesRead = 0;
 	uint32 TotalEntries = 0;
 	NET_API_STATUS Status = ERROR_MORE_DATA;
 	while (Status == ERROR_MORE_DATA)
-		Status = NetUserGetLocalGroups(nullptr, UserName.f_GetStr(), 0, LG_INCLUDE_INDIRECT, &pData, MAX_PREFERRED_LENGTH, &EntriesRead, &TotalEntries);
+		Status = NetUserGetLocalGroups(pDomainName, UserName.f_GetStr(), 0, LG_INCLUDE_INDIRECT, &pData, MAX_PREFERRED_LENGTH, &EntriesRead, &TotalEntries);
 
 	auto Cleanup = g_OnScopeExit > [&]
 		{
