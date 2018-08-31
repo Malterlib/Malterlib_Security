@@ -232,19 +232,19 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 		}
 	;
 
-	if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserGetInfo({}): {}") << UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
-
-	USER_INFO_10 &UserInfo = *((USER_INFO_10 *)pData);
-
-	NMib::NStr::CStr Comment;
-	if (UserInfo.usri10_comment)
-		Comment = NMib::NStr::CWStr(UserInfo.usri10_comment);
-
-	for (auto &Line : Comment.f_SplitLine())
+	if (Status == NERR_Success)
 	{
-		if (Line.f_StartsWith("MalterlibUserGroup: "))
-			return Line.f_Extract(20);
+		USER_INFO_10 &UserInfo = *((USER_INFO_10 *)pData);
+
+		NMib::NStr::CStr Comment;
+		if (UserInfo.usri10_comment)
+			Comment = NMib::NStr::CWStr(UserInfo.usri10_comment);
+
+		for (auto &Line : Comment.f_SplitLine())
+		{
+			if (Line.f_StartsWith("MalterlibUserGroup: "))
+				return Line.f_Extract(20);
+		}
 	}
 
 	{
@@ -266,7 +266,6 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 		TOKEN_PRIMARY_GROUP &TokenPrimaryInfo = *((TOKEN_PRIMARY_GROUP *)TokenData.f_GetArray());
-
 		
 		SID_NAME_USE AccountType;
 		NMib::NStr::CWStr ReferencedDomainName;
@@ -330,6 +329,9 @@ bint NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 		pDomainName = DomainName.f_GetStr();
 	}
 
+	if (DomainName == "NT AUTHORITY")
+		return true;
+
 	uint8 *pData = nullptr;
 	NET_API_STATUS Status = NetLocalGroupGetInfo(pDomainName, GroupName.f_GetStr(), 0, &pData);
 
@@ -363,6 +365,9 @@ bint NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib:
 		pDomainName = DomainName.f_GetStr();
 	}
 
+	if (DomainName == "NT AUTHORITY")
+		return true;
+
 	uint8 *pData = nullptr;
 	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 0, &pData);
 
@@ -395,6 +400,9 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 		UserName = Split[1];
 		pDomainName = DomainName.f_GetStr();
 	}
+
+	if (DomainName == "NT AUTHORITY")
+		pDomainName = nullptr;
 
 	uint8 *pData = nullptr;
 	uint32 EntriesRead = 0;
