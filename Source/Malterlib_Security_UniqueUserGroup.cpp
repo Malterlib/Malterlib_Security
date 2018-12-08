@@ -19,7 +19,7 @@ namespace NMib::NSecurity
 			return;
 		}
 
-		NDataProcessing::CHash_SHA256 Hash;
+		NCryptography::CHash_SHA256 Hash;
 
 		CStr Salt = "MalterlibSecurityUserGroupNameTransform";
 

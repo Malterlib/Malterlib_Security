@@ -24,7 +24,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 	if (_UserName.f_GetLen() <= 20)
 		return _UserName;
 
-	NMib::NDataProcessing::CHash_SHA256 Hash;
+	NMib::NCryptography::CHash_SHA256 Hash;
 	Hash.f_AddData(_UserName.f_GetStr(), _UserName.f_GetLen());
 
 	auto Digest = Hash.f_GetDigest();
@@ -38,7 +38,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CS
 	if (_GroupName.f_GetLen() <= 32)
 		return _GroupName;
 
-	NMib::NDataProcessing::CHash_SHA256 Hash;
+	NMib::NCryptography::CHash_SHA256 Hash;
 	Hash.f_AddData(_GroupName.f_GetStr(), _GroupName.f_GetLen());
 
 	auto Digest = Hash.f_GetDigest();
@@ -49,7 +49,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CS
 void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
 {
 	LOCALGROUP_INFO_0 GroupInfo;
-	NMem::fg_MemClear(GroupInfo);
+	NMemory::fg_MemClear(GroupInfo);
 
 	NMib::NStr::CWStr GroupName = NMib::NStr::NPlatform::fg_StrToWindows(_GroupName);
 	GroupInfo.lgrpi0_name = GroupName.f_GetStrUniqueWritable();
@@ -83,7 +83,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	)
 {
 	USER_INFO_1 UserInfo;
-	NMem::fg_MemClear(UserInfo);
+	NMemory::fg_MemClear(UserInfo);
 
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 	NMib::NStr::CWStr Password = NMib::NStr::NPlatform::fg_StrToWindows<NMib::NStr::CWStrSecure>(_Password);
@@ -103,7 +103,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserAdd('{}'), param {}: {}") << _UserName << ParmError << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
 	USER_INFO_1011 FullNameInfo;
-	NMem::fg_MemClear(FullNameInfo);
+	NMemory::fg_MemClear(FullNameInfo);
 	FullNameInfo.usri1011_full_name = FullName.f_GetStrUniqueWritable();
 
 	Status = NetUserSetInfo(nullptr, UserName.f_GetStr(), 1011, (uint8 *)&FullNameInfo, nullptr);

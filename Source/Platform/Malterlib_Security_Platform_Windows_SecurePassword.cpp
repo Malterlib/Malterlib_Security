@@ -38,14 +38,14 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	DataIn.pbData = (BYTE*)_Password.f_GetStr();    
 	DataIn.cbData = _Password.f_GetLen();
 
-	NDataProcessing::CHashDigest_SHA1 KeyDigest;
+	NCryptography::CHashDigest_SHA1 KeyDigest;
 	{
-		NDataProcessing::CHash_SHA1 Hash;
+		NCryptography::CHash_SHA1 Hash;
 		Hash.f_AddData(_Key.f_GetStr(), _Key.f_GetLen());
 		KeyDigest = Hash;
 	}
 	Entropy.pbData = (BYTE*)KeyDigest.f_GetData();
-	Entropy.cbData = NDataProcessing::CHashDigest_SHA1::fs_GetSize();
+	Entropy.cbData = NCryptography::CHashDigest_SHA1::fs_GetSize();
 
 	if(!CryptProtectData(
 		&DataIn
@@ -59,10 +59,10 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 		return NMib::NSys::ESecurePassword_Failure;
 	}
 
-	NContainer::TCVector<uint8> Encrypted;
+	NContainer::CByteVector Encrypted;
 
 	Encrypted.f_SetLen(DataOut.cbData);
-	NMem::fg_MemCopy(Encrypted.f_GetArray(), DataOut.pbData, Encrypted.f_GetLen());
+	NMemory::fg_MemCopy(Encrypted.f_GetArray(), DataOut.pbData, Encrypted.f_GetLen());
 
 	SecureZeroMemory(DataOut.pbData, DataOut.cbData);
 	LocalFree(DataOut.pbData);
@@ -117,7 +117,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 	NMib::NPlatform::CWin32_Registry Reg(NMib::NPlatform::CWin32_Registry::ERegRoot_CurrentUser, SubSystem.m_SecurePasswordLocation);
 
-	NContainer::TCVector<uint8> Encrypted;
+	NContainer::CByteVector Encrypted;
 
 	try
 	{
@@ -146,16 +146,16 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 			}
 		);
 
-	NDataProcessing::CHashDigest_SHA1 KeyDigest;
+	NCryptography::CHashDigest_SHA1 KeyDigest;
 	{
-		NDataProcessing::CHash_SHA1 Hash;
+		NCryptography::CHash_SHA1 Hash;
 		Hash.f_AddData(_Key.f_GetStr(), _Key.f_GetLen());
 		KeyDigest = Hash;
 	}
 
 	DATA_BLOB Entropy;
 	Entropy.pbData = (BYTE*)KeyDigest.f_GetData();
-	Entropy.cbData = NDataProcessing::CHashDigest_SHA1::fs_GetSize();
+	Entropy.cbData = NCryptography::CHashDigest_SHA1::fs_GetSize();
 
 
 	if (!CryptUnprotectData(

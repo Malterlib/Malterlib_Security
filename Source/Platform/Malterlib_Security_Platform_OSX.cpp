@@ -98,7 +98,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 			NMib::NStr::CStrSecure ExistingPassword{(ch8 const *)pExistingPassword, nExistingPasswordBytes};
 			bint bPasswordEqual = Password == ExistingPassword;
 
-			NMem::fg_ObjectSet((uint8*)pExistingPassword, 0, nExistingPasswordBytes);
+			NMemory::fg_ObjectSet((uint8*)pExistingPassword, 0, nExistingPasswordBytes);
 
 			SecKeychainItemFreeContent(NULL, pExistingPassword);
 
@@ -206,7 +206,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 	{
 		_oPassword = NMib::NStr::CStrSecure( (NMib::NStr::CStrSecure::CChar*)pPassword, nPasswordBytes);
 
-		NMem::fg_ObjectSet((uint8*)pPassword, 0, nPasswordBytes);
+		NMemory::fg_ObjectSet((uint8*)pPassword, 0, nPasswordBytes);
 
 		SecKeychainItemFreeContent(NULL, pPassword);
 
@@ -474,7 +474,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 	if (_UserName.f_GetLen() <= 32)
 		return _UserName;
 
-	NMib::NDataProcessing::CHash_SHA256 Hash;
+	NMib::NCryptography::CHash_SHA256 Hash;
 	Hash.f_AddData(_UserName.f_GetStr(), _UserName.f_GetLen());
 
 	auto Digest = Hash.f_GetDigest();

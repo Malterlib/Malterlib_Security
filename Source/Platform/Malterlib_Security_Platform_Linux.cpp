@@ -10,7 +10,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CSt
 	if (_UserName.f_GetLen() <= 32)
 		return _UserName;
 
-	NMib::NDataProcessing::CHash_SHA256 Hash;
+	NMib::NCryptography::CHash_SHA256 Hash;
 	Hash.f_AddData(_UserName.f_GetStr(), _UserName.f_GetLen());
 
 	auto Digest = Hash.f_GetDigest();
