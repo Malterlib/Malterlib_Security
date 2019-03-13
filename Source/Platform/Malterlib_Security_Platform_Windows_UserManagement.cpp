@@ -88,11 +88,9 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 	NMib::NStr::CWStr Password = NMib::NStr::NPlatform::fg_StrToWindows<NMib::NStr::CWStrSecure>(_Password);
 	NMib::NStr::CWStr FullName = NMib::NStr::NPlatform::fg_StrToWindows(_FullName);
-	NMib::NStr::CWStr Comment = NMib::NStr::NPlatform::fg_StrToWindows(NMib::NStr::fg_Format("MalterlibUserGroup: {}", _InGroupName));
 
 	UserInfo.usri1_name = UserName.f_GetStrUniqueWritable();
 	UserInfo.usri1_password = Password.f_GetStrUniqueWritable();
-	UserInfo.usri1_comment = Comment.f_GetStrUniqueWritable();
 	UserInfo.usri1_priv = USER_PRIV_USER;
 	UserInfo.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD;
 	
@@ -109,6 +107,16 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	Status = NetUserSetInfo(nullptr, UserName.f_GetStr(), 1011, (uint8 *)&FullNameInfo, nullptr);
 	if (Status != NERR_Success)
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set full name): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+
+	USER_INFO_1013 ParamsInfo;
+	NMem::fg_MemClear(ParamsInfo);
+	NMib::NStr::CWStr Params = NMib::NStr::NPlatform::fg_StrToWindows(NMib::NStr::fg_Format("MalterlibUserGroup: {}", _InGroupName));
+	ParamsInfo.usri1013_parms = Params.f_GetStrUniqueWritable();
+
+	Status = NetUserSetInfo(nullptr, UserName.f_GetStr(), 1013, (uint8 *)&ParamsInfo, nullptr);
+	if (Status != NERR_Success)
+		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set params): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+	
 
 	fg_UserManagement_AddUserToGroup("Users", _UserName);
 
@@ -223,7 +231,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 	}
 
 	uint8 *pData = nullptr;
-	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 10, &pData);
+	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 1013, &pData);
 
 	auto Cleanup = g_OnScopeExit > [&]
 		{
@@ -234,13 +242,13 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 
 	if (Status == NERR_Success)
 	{
-		USER_INFO_10 &UserInfo = *((USER_INFO_10 *)pData);
+		USER_INFO_1013 &UserInfo = *((USER_INFO_1013 *)pData);
 
-		NMib::NStr::CStr Comment;
-		if (UserInfo.usri10_comment)
-			Comment = NMib::NStr::CWStr(UserInfo.usri10_comment);
+		NMib::NStr::CStr Params;
+		if (UserInfo.usri1013_parms)
+			Params = NMib::NStr::CWStr(UserInfo.usri1013_parms);
 
-		for (auto &Line : Comment.f_SplitLine())
+		for (auto &Line : Params.f_SplitLine())
 		{
 			if (Line.f_StartsWith("MalterlibUserGroup: "))
 				return Line.f_Extract(20);
