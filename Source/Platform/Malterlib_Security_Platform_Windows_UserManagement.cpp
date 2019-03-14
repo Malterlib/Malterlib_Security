@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -69,7 +69,7 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 
 	if (Status != NERR_Success)
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDel: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
-}	
+}
 
 void NMib::NSys::fg_UserManagement_CreateUser
 	(
@@ -93,7 +93,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	UserInfo.usri1_password = Password.f_GetStrUniqueWritable();
 	UserInfo.usri1_priv = USER_PRIV_USER;
 	UserInfo.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD;
-	
+
 	uint32 ParmError = 0;
 	NET_API_STATUS Status = NetUserAdd(nullptr, 1, (uint8 *)&UserInfo, &ParmError);
 
@@ -109,14 +109,14 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set full name): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
 	USER_INFO_1013 ParamsInfo;
-	NMem::fg_MemClear(ParamsInfo);
+	NMemory::fg_MemClear(ParamsInfo);
 	NMib::NStr::CWStr Params = NMib::NStr::NPlatform::fg_StrToWindows(NMib::NStr::fg_Format("MalterlibUserGroup: {}", _InGroupName));
 	ParamsInfo.usri1013_parms = Params.f_GetStrUniqueWritable();
 
 	Status = NetUserSetInfo(nullptr, UserName.f_GetStr(), 1013, (uint8 *)&ParamsInfo, nullptr);
 	if (Status != NERR_Success)
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set params): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
-	
+
 
 	fg_UserManagement_AddUserToGroup("Users", _UserName);
 
@@ -198,7 +198,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealUser()
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 	TOKEN_USER &TokenUserInfo = *((TOKEN_USER *)TokenData.f_GetArray());
-	
+
 	SID_NAME_USE AccountType;
 	NMib::NStr::CWStr ReferencedDomainName;
 	uint32 ReferencedDomainNameSize = 8192;
@@ -274,7 +274,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 		TOKEN_PRIMARY_GROUP &TokenPrimaryInfo = *((TOKEN_PRIMARY_GROUP *)TokenData.f_GetArray());
-		
+
 		SID_NAME_USE AccountType;
 		NMib::NStr::CWStr ReferencedDomainName;
 		NMib::NStr::CWStr GroupName;
