@@ -69,6 +69,23 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 
 	if (Status != NERR_Success)
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDel: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+
+void NMib::NSys::fg_UserManagement_SetUserPassword
+	(
+		NMib::NStr::CStr const &_UserName
+		, NMib::NStr::CStrSecure const &_Password
+	)
+{
+	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
+	NMib::NStr::CWStr Password = NMib::NStr::NPlatform::fg_StrToWindows<NMib::NStr::CWStrSecure>(_Password);
+	
+	USER_INFO_1003 PasswordInfo;
+	NMem::fg_MemClear(PasswordInfo);
+	PasswordInfo.usri1003_password = Password.f_GetStrUniqueWritable();
+
+	NET_API_STATUS Status = NetUserSetInfo(nullptr, UserName.f_GetStr(), 1003, (uint8 *)&PasswordInfo, nullptr);
+	if (Status != NERR_Success)
+		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set password): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 }
 
 void NMib::NSys::fg_UserManagement_CreateUser
@@ -117,8 +134,8 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	if (Status != NERR_Success)
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserSetInfo(Set params): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 
-
-	fg_UserManagement_AddUserToGroup("Users", _UserName);
+	if (_Flags & EUserManagementCreateUserFlag_SupportUILogin)
+		fg_UserManagement_AddUserToGroup("Users", _UserName);
 
 	if (!_InGroupName.f_IsEmpty())
 		fg_UserManagement_AddUserToGroup(_InGroupName, _UserName);

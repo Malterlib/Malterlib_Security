@@ -23,6 +23,15 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CS
 	return fg_UserManagement_MakeValidUserName(_GroupName);
 }
 
+void NMib::NSys::fg_UserManagement_SetUserPassword
+	(
+		NMib::NStr::CStr const &_UserName
+		, NMib::NStr::CStrSecure const &_Password
+	)
+{
+	DMibError("Not implemented");
+}
+
 void NMib::NSys::fg_UserManagement_CreateUser
 	(
 		NMib::NStr::CStr const &_InGroupName
