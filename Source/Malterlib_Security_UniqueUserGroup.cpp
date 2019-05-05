@@ -10,10 +10,9 @@ namespace NMib::NSecurity
 {
 	using namespace NStr;
 
-	CUniqueUserGroup::CUniqueUserGroup(CStr const &_DefaultDirectory)
+	CUniqueUserGroup::CUniqueUserGroup(CStr const &_DefaultDirectory, NStr::CStr const &_CurrentDirectory)
 	{
-		CStr ProgramDirectory = NFile::CFile::fs_GetProgramDirectory();
-		if (ProgramDirectory == _DefaultDirectory)
+		if (_CurrentDirectory == _DefaultDirectory)
 		{
 			m_UserGroupNameTransform = "{}";
 			return;
@@ -25,7 +24,7 @@ namespace NMib::NSecurity
 
 		Hash.f_AddData(Salt.f_GetStr(), Salt.f_GetLen());
 		Hash.f_AddData(_DefaultDirectory.f_GetStr(), _DefaultDirectory.f_GetLen());
-		Hash.f_AddData(ProgramDirectory.f_GetStr(), ProgramDirectory.f_GetLen());
+		Hash.f_AddData(_CurrentDirectory.f_GetStr(), _CurrentDirectory.f_GetLen());
 		m_UserGroupNameTransform = "{{}_{}"_f << Hash.f_GetDigest().f_GetString().f_Left(16);
 	}
 
