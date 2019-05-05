@@ -557,8 +557,9 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		if (UniqueID != -1)
 			DMibError(NMib::NStr::CStr::CFormat("User already exist: {} ()") << _UserName << StdErr);
 	}
-	
 
+	mint nRetry = 0;
+l_Retry:
 	{
 		NMib::NStr::CStr StdOut;
 		NMib::NStr::CStr StdErr;
@@ -608,7 +609,21 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	;
 	
 	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName});
-	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID", NMib::NStr::CStr::fs_ToStr(UniqueID)});
+
+	try
+	{
+		fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID", NMib::NStr::CStr::fs_ToStr(UniqueID)});
+	}
+	catch (NException::CException const &_Exception)
+	{
+		if (nRetry < 16 && _Exception.f_GetErrorStr().f_Find("eDSRecordAlreadyExists") >= 0)
+		{
+			++nRetry;
+			goto l_Retry; // Race condition
+		}
+		throw;
+	}
+
 	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "PrimaryGroupID", NMib::NStr::CStr::fs_ToStr(PrimaryGroupID)});
 	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UserShell", (_Flags & EUserManagementCreateUserFlag_ShellAccess) ? "/bin/bash" : "/bin/false"});
 	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "NFSHomeDirectory", _HomeDirectory});
