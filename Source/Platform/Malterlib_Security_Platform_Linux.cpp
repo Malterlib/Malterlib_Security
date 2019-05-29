@@ -237,7 +237,7 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	DMibError(NMib::NStr::CStr::CFormat("Error adding user {} to group {}: {} {}") << _UserName << _GroupName << ExitCode << StdErr);
 }
 
-bint NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
+bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 {
 	// Usernames must start with a lower case letter or an underscore, followed by lower case letters, digits, underscores, or dashes.
 	// They can end with a dollar sign. In regular expression terms: [a-z_][a-z0-9_-]*[$]?

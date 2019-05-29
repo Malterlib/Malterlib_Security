@@ -182,7 +182,7 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDelMembers('{}', '{}'): {}") << _GroupName << _UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 }
 
- bint NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
+ bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 {
 	if (_Name.f_FindChars("\"/\\[]:|<>+=,;?*") >= 0 || _Name.f_EndsWith("."))
 		 return false;
@@ -341,7 +341,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessEffectiveGroupName()
 }
 
 
-bint NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
+bool NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
 {
 	NMib::NStr::CWStr GroupName = NMib::NStr::NPlatform::fg_StrToWindows(_GroupName);
 
@@ -377,7 +377,7 @@ bint NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 	return true;
 }
 
-bint NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib::NStr::CStr &o_ReturnUID)
+bool NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib::NStr::CStr &o_ReturnUID)
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 
@@ -456,7 +456,7 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 	return Return;
 }
 
-bint NSys::fg_UserManagement_UserIsMemberOfGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName)
+bool NSys::fg_UserManagement_UserIsMemberOfGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName)
 {
 	auto Groups = fg_UserManagement_UserGetMemberOfGroups(_UserName);
 

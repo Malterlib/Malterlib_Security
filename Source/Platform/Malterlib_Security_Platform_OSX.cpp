@@ -96,7 +96,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 		if (Status == noErr)
 		{
 			NMib::NStr::CStrSecure ExistingPassword{(ch8 const *)pExistingPassword, nExistingPasswordBytes};
-			bint bPasswordEqual = Password == ExistingPassword;
+			bool bPasswordEqual = Password == ExistingPassword;
 
 			NMemory::fg_ObjectSet((uint8*)pExistingPassword, 0, nExistingPasswordBytes);
 
@@ -716,7 +716,7 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	fg_UserManagement_ClearGroupCache();
 }
 
-bint NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
+bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 {
 	return _Name.f_FindChar(' ') < 0;
 }
