@@ -79,7 +79,7 @@ void NMib::NSys::fg_UserManagement_SetUserPassword
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 	NMib::NStr::CWStr Password = NMib::NStr::NPlatform::fg_StrToWindows<NMib::NStr::CWStrSecure>(_Password);
-	
+
 	USER_INFO_1003 PasswordInfo;
 	NMemory::fg_MemClear(PasswordInfo);
 	PasswordInfo.usri1003_password = Password.f_GetStrUniqueWritable();
@@ -266,7 +266,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 		if (UserInfo.usri1013_parms)
 			Params = NMib::NStr::CWStr(UserInfo.usri1013_parms);
 
-		for (auto &Line : Params.f_SplitLine())
+		for (auto &Line : Params.f_SplitLine<true>())
 		{
 			if (Line.f_StartsWith("MalterlibUserGroup: "))
 				return Line.f_Extract(20);
