@@ -15,7 +15,9 @@ namespace
 		NMib::NStr::CStr m_SecurePasswordLocation;
 	};
 
-	NMib::TCSubSystem<CSubSystem_Security_Platform_Windows_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager> g_SubSystem_Security_Platform_Windows_SecurePassword = {DAggregateInit};
+	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_Windows_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
+		g_SubSystem_Security_Platform_Windows_SecurePassword = {DAggregateInit}
+	;
 }
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const& _Location)

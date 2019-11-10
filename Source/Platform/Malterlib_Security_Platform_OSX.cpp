@@ -18,7 +18,9 @@ namespace
 		NMib::NStr::CStr m_SecurePasswordLocation;
 	};
 
-	NMib::TCSubSystem<CSubSystem_Security_Platform_OSX_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager> g_SubSystem_Security_Platform_OSX_SecurePassword = {DAggregateInit};
+	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_OSX_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
+		g_SubSystem_Security_Platform_OSX_SecurePassword = {DAggregateInit}
+	;
 	
 	static NMib::NSys::ESecurePassword fg_SecurePassword_Decode_OSStatus(OSStatus _Status)
 	{
