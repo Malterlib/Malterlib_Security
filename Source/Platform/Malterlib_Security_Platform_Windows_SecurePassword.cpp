@@ -20,6 +20,11 @@ namespace
 	;
 }
 
+bool NMib::NSys::fg_SecurePassword_IsLocked()
+{
+	return false;
+}
+
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const& _Location)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_Windows_SecurePassword;

@@ -14,9 +14,9 @@ namespace
 
 		void f_DoTests()
 		{
-			if (!NSys::fg_SecurePassword_Supported())
+			if (!NSys::fg_SecurePassword_Supported() || NSys::fg_SecurePassword_IsLocked())
 				return; // Not supported
-			
+
 			NStr::CStr TestKey = "TestKey";
 			NStr::CStrSecure TestPassword = "TestPassword";
 

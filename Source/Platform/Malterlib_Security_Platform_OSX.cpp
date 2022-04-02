@@ -55,6 +55,11 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr
 	return ESecurePassword_OK;
 }
 
+bool NMib::NSys::fg_SecurePassword_IsLocked()
+{
+	return false;
+}
+
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure const& _Password)
 {			
 	auto &SubSystem = *g_SubSystem_Security_Platform_OSX_SecurePassword;
