@@ -202,7 +202,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealUser()
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &ProcessToken))
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from OpenProcessToken(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
-	auto Cleanup = g_OnScopeExit > [&]
+	auto Cleanup = g_OnScopeExit / [&]
 		{
 			CloseHandle(ProcessToken);
 		}
@@ -251,7 +251,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 	uint8 *pData = nullptr;
 	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 1013, &pData);
 
-	auto Cleanup = g_OnScopeExit > [&]
+	auto Cleanup = g_OnScopeExit / [&]
 		{
 			if (pData)
 				NetApiBufferFree(pData);
@@ -278,7 +278,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &ProcessToken))
 			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from OpenProcessToken(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
-		auto Cleanup = g_OnScopeExit > [&]
+		auto Cleanup = g_OnScopeExit / [&]
 			{
 				CloseHandle(ProcessToken);
 			}
@@ -361,7 +361,7 @@ bool NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 	uint8 *pData = nullptr;
 	NET_API_STATUS Status = NetLocalGroupGetInfo(pDomainName, GroupName.f_GetStr(), 0, &pData);
 
-	auto Cleanup = g_OnScopeExit > [&]
+	auto Cleanup = g_OnScopeExit / [&]
 		{
 			if (pData)
 				NetApiBufferFree(pData);
@@ -397,7 +397,7 @@ bool NSys::fg_UserManagement_UserExists(NMib::NStr::CStr const &_UserName, NMib:
 	uint8 *pData = nullptr;
 	NET_API_STATUS Status = NetUserGetInfo(pDomainName, UserName.f_GetStr(), 0, &pData);
 
-	auto Cleanup = g_OnScopeExit > [&]
+	auto Cleanup = g_OnScopeExit / [&]
 		{
 			if (pData)
 				NetApiBufferFree(pData);
@@ -437,7 +437,7 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 	while (Status == ERROR_MORE_DATA)
 		Status = NetUserGetLocalGroups(pDomainName, UserName.f_GetStr(), 0, LG_INCLUDE_INDIRECT, &pData, MAX_PREFERRED_LENGTH, &EntriesRead, &TotalEntries);
 
-	auto Cleanup = g_OnScopeExit > [&]
+	auto Cleanup = g_OnScopeExit / [&]
 		{
 			if (pData)
 				NetApiBufferFree(pData);
