@@ -35,7 +35,7 @@ namespace
 				bool bWithSpace = true;
 
 #if defined(DPlatformFamily_Windows)
-#elif defined(DPlatformFamily_OSX)
+#elif defined(DPlatformFamily_macOS)
 				bWithSpace = false;
 #elif defined(DPlatformFamily_Linux)
 				bDigitFirst = false;

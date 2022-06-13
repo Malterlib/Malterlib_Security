@@ -13,13 +13,13 @@
 
 namespace 
 {
-	struct CSubSystem_Security_Platform_OSX_SecurePassword : public NMib::CSubSystem
+	struct CSubSystem_Security_Platform_MacOS_SecurePassword : public NMib::CSubSystem
 	{
 		NMib::NStr::CStr m_SecurePasswordLocation;
 	};
 
-	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_OSX_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
-		g_SubSystem_Security_Platform_OSX_SecurePassword = {DAggregateInit}
+	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_MacOS_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
+		g_SubSystem_Security_Platform_MacOS_SecurePassword = {DAggregateInit}
 	;
 	
 	static NMib::NSys::ESecurePassword fg_SecurePassword_Decode_OSStatus(OSStatus _Status)
@@ -50,7 +50,7 @@ namespace
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const& _Location)
 {
-	g_SubSystem_Security_Platform_OSX_SecurePassword->m_SecurePasswordLocation = _Location;
+	g_SubSystem_Security_Platform_MacOS_SecurePassword->m_SecurePasswordLocation = _Location;
 
 	return ESecurePassword_OK;
 }
@@ -62,7 +62,7 @@ bool NMib::NSys::fg_SecurePassword_IsLocked()
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure const& _Password)
 {			
-	auto &SubSystem = *g_SubSystem_Security_Platform_OSX_SecurePassword;
+	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
 	NMib::NStr::CStr Key = _Key;
@@ -146,7 +146,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CStr const& _Key)
 {
-	auto &SubSystem = *g_SubSystem_Security_Platform_OSX_SecurePassword;
+	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
 	NMib::NStr::CStr Key = _Key;
@@ -185,7 +185,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure& _oPassword)
 {
-	auto &SubSystem = *g_SubSystem_Security_Platform_OSX_SecurePassword;
+	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
 //			DMibLog(Error, "NSys::fg_SecurePassword_Get - Looking for {}", _Key);
@@ -234,7 +234,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CStr const& _Key)
 {
-	auto &SubSystem = *g_SubSystem_Security_Platform_OSX_SecurePassword;
+	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
 //			DMibLog(Error, "NSys::fg_SecurePassword_Exists - Looking for {}", _Key);
