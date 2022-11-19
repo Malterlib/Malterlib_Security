@@ -35,12 +35,12 @@ Import "../Core/Lib_Malterlib.MTarget"
 
 Property
 {
-	MalterlibLibrary_Security define bool = MalterlibLibrary_All
+	MalterlibLibrary_Security: bool = MalterlibLibrary_All
 	MalterlibSubLibraries =+ "Security"
 	{
 		!!MalterlibLibrary_Security true
 	}
-//	MalterlibSubLibrarySeparate_Lib_Malterlib_Security define bool = true
+//	MalterlibSubLibrarySeparate_Lib_Malterlib_Security: bool = true
 	MalterlibIncludeRoots =+ "Include"->MakeAbsolute()
 	{
 		!!MalterlibLibrary_Security true
@@ -52,5 +52,5 @@ Property
 	!!MalterlibEnableInternalTests true
 	
 	MalterlibTests =+ "Malterlib_Security"
-	MalterlibTestFiles_Malterlib_Security define [type(CEntity)] = ["Test/*"->MakeAbsolute()]
+	MalterlibTestFiles_Malterlib_Security: [type(CEntity)] = ["Test/*"->MakeAbsolute()]
 }
