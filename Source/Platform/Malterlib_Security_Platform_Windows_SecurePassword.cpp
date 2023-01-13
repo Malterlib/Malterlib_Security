@@ -52,7 +52,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 		KeyDigest = Hash;
 	}
 	Entropy.pbData = (BYTE*)KeyDigest.f_GetData();
-	Entropy.cbData = NCryptography::CHashDigest_SHA1::fs_GetSize();
+	Entropy.cbData = NCryptography::CHashDigest_SHA1::mc_Size;
 
 	if(!CryptProtectData(
 		&DataIn
@@ -162,7 +162,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 	DATA_BLOB Entropy;
 	Entropy.pbData = (BYTE*)KeyDigest.f_GetData();
-	Entropy.cbData = NCryptography::CHashDigest_SHA1::fs_GetSize();
+	Entropy.cbData = NCryptography::CHashDigest_SHA1::mc_Size;
 
 
 	if (!CryptUnprotectData(
