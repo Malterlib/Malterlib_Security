@@ -97,7 +97,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		, NMib::NStr::CStr const &_FullName
 		, NMib::NStr::CStr const &_HomeDirectory
 		, NMib::NStr::CStr &o_ReturnUID
-	 	, EUserManagementCreateUserFlag _Flags
+		, EUserManagementCreateUserFlag _Flags
 	)
 {
 	USER_INFO_1 UserInfo;

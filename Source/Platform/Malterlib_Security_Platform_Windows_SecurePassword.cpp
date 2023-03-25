@@ -54,14 +54,19 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	Entropy.pbData = (BYTE*)KeyDigest.f_GetData();
 	Entropy.cbData = NCryptography::CHashDigest_SHA1::mc_Size;
 
-	if(!CryptProtectData(
-		&DataIn
-		,NULL 			// Description
-		,&Entropy 			// Optional entropy
-		,NULL 			// Reserved
-		,NULL 			// Prompt info
-		,0 				// Flags
-		,&DataOut))
+	if
+		(
+			!CryptProtectData
+			(
+				&DataIn
+				, NULL			// Description
+				, &Entropy			// Optional entropy
+				, NULL			// Reserved
+				, NULL			// Prompt info
+				, 0				// Flags
+				, &DataOut
+			)
+		)
 	{
 		return NMib::NSys::ESecurePassword_Failure;
 	}
@@ -74,12 +79,14 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	SecureZeroMemory(DataOut.pbData, DataOut.cbData);
 	LocalFree(DataOut.pbData);
 
-	auto Cleanup = fg_OnScopeExit(
+	auto Cleanup = fg_OnScopeExit
+		(
 			[&]()
 			{
 				SecureZeroMemory(Encrypted.f_GetArray(), Encrypted.f_GetLen());
 			}
-		);
+		)
+	;
 
 	NMib::NPlatform::CWin32_Registry Reg(NMib::NPlatform::CWin32_Registry::ERegRoot_CurrentUser, SubSystem.m_SecurePasswordLocation);
 
@@ -141,7 +148,8 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 	DataIn.pbData = (BYTE*)Encrypted.f_GetArray();
 	DataIn.cbData = Encrypted.f_GetLen();
 
-	auto Cleanup = fg_OnScopeExit(
+	auto Cleanup = fg_OnScopeExit
+		(
 			[&]()
 			{
 				SecureZeroMemory(Encrypted.f_GetArray(), Encrypted.f_GetLen());
@@ -151,7 +159,8 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 					LocalFree(DataOut.pbData);
 				}
 			}
-		);
+		)
+	;
 
 	NCryptography::CHashDigest_SHA1 KeyDigest;
 	{
@@ -165,15 +174,19 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 	Entropy.cbData = NCryptography::CHashDigest_SHA1::mc_Size;
 
 
-	if (!CryptUnprotectData(
+	if
+		(
+			!CryptUnprotectData
+			(
 				&DataIn
-			,	NULL 	// Desc
-			,	&Entropy 	// Entropy
-			,	NULL 	// Reserved
-			,	NULL 	// Prompt
-			,	0 		// Flags
-			, 	&DataOut
-		))
+				, NULL	// Desc
+				, &Entropy	// Entropy
+				, NULL	// Reserved
+				, NULL	// Prompt
+				, 0		// Flags
+				, &DataOut
+			)
+		)
 	{
 		return NMib::NSys::ESecurePassword_Failure;
 	}
@@ -200,9 +213,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 	try
 	{
 		if (Reg.f_ValueExists("", _Key))
-		{
 			return NMib::NSys::ESecurePassword_OK;
-		}
 	}
 	catch(NException::CException const&)
 	{

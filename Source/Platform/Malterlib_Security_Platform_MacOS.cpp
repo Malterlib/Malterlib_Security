@@ -71,16 +71,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 
 	OSStatus Status;
 
-	Status = SecKeychainAddGenericPassword (
+	Status = SecKeychainAddGenericPassword
+		(
 			NULL			// Default keychain
-		,	SubSystem.m_SecurePasswordLocation.f_GetLen()
-		,	SubSystem.m_SecurePasswordLocation.f_GetStr()
-		,	Key.f_GetLen()	// Account name len
-		,	Key.f_GetStr()	// Account name
-		,	Password.f_GetLen() // Password len.
-		,	Password.f_GetStr()	// Password
-		,	NULL 			// the item reference
-	);
+			, SubSystem.m_SecurePasswordLocation.f_GetLen()
+			, SubSystem.m_SecurePasswordLocation.f_GetStr()
+			, Key.f_GetLen()	// Account name len
+			, Key.f_GetStr()	// Account name
+			, Password.f_GetLen() // Password len.
+			, Password.f_GetStr()	// Password
+			, NULL			// the item reference
+		)
+	;
 
 	if (Status == errSecDuplicateItem)
 	{ // Already exists, try changing the existing entry.
@@ -89,16 +91,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 		void* pExistingPassword = nullptr;
 		UInt32 nExistingPasswordBytes = 0;
 
-		Status = SecKeychainFindGenericPassword (
+		Status = SecKeychainFindGenericPassword
+			(
 				nullptr			// Default keychain
-			,	SubSystem.m_SecurePasswordLocation.f_GetLen()
-			,	SubSystem.m_SecurePasswordLocation.f_GetStr()
-			,	Key.f_GetLen()	// Account name len
-			,	Key.f_GetStr()	// Account name
-			,	&nExistingPasswordBytes 				// Password len.
-			,	&pExistingPassword			// Password
-			,	&ItemRef 		// the item reference
-		);
+				, SubSystem.m_SecurePasswordLocation.f_GetLen()
+				, SubSystem.m_SecurePasswordLocation.f_GetStr()
+				, Key.f_GetLen()	// Account name len
+				, Key.f_GetStr()	// Account name
+				, &nExistingPasswordBytes				// Password len.
+				, &pExistingPassword			// Password
+				, &ItemRef		// the item reference
+			)
+		;
 
 		if (Status == noErr)
 		{
@@ -154,16 +158,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 	OSStatus Status;
 	SecKeychainItemRef ItemRef = nullptr;
 
-	Status = SecKeychainFindGenericPassword (
+	Status = SecKeychainFindGenericPassword
+		(
 			nullptr			// Default keychain
-		,	SubSystem.m_SecurePasswordLocation.f_GetLen()
-		,	SubSystem.m_SecurePasswordLocation.f_GetStr()
-		,	Key.f_GetLen()	// Account name len
-		,	Key.f_GetStr()	// Account name
-		,	0 				// Password len.
-		,	nullptr			// Password
-		,	&ItemRef 		// the item reference
-	);
+			, SubSystem.m_SecurePasswordLocation.f_GetLen()
+			, SubSystem.m_SecurePasswordLocation.f_GetStr()
+			, Key.f_GetLen()	// Account name len
+			, Key.f_GetStr()	// Account name
+			, 0				// Password len.
+			, nullptr			// Password
+			, &ItemRef		// the item reference
+		)
+	;
 
 	if (Status == noErr)
 	{
@@ -198,16 +204,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 	OSStatus Status;
 	SecKeychainItemRef ItemRef = nullptr;
 
-	Status = SecKeychainFindGenericPassword (
+	Status = SecKeychainFindGenericPassword
+		(
 			nullptr			// Default keychain
-		,	SubSystem.m_SecurePasswordLocation.f_GetLen()
-		,	SubSystem.m_SecurePasswordLocation.f_GetStr()
-		,	Key.f_GetLen()	// Account name len
-		,	Key.f_GetStr()	// Account name
-		,	&nPasswordBytes // Password len.
-		,	&pPassword		// Password
-		,	&ItemRef 			// the item reference
-	);
+			, SubSystem.m_SecurePasswordLocation.f_GetLen()
+			, SubSystem.m_SecurePasswordLocation.f_GetStr()
+			, Key.f_GetLen()	// Account name len
+			, Key.f_GetStr()	// Account name
+			, &nPasswordBytes // Password len.
+			, &pPassword		// Password
+			, &ItemRef			// the item reference
+		)
+	;
 
 	if (Status == noErr)
 	{
@@ -244,16 +252,18 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 	OSStatus Status;
 	SecKeychainItemRef ItemRef = nullptr;
 
-	Status = SecKeychainFindGenericPassword (
+	Status = SecKeychainFindGenericPassword
+		(
 			nullptr			// Default keychain
-		,	SubSystem.m_SecurePasswordLocation.f_GetLen()
-		,	SubSystem.m_SecurePasswordLocation.f_GetStr()
-		,	Key.f_GetLen()	// Account name len
-		,	Key.f_GetStr()	// Account name
-		,	0 				// Password len.
-		,	nullptr			// Password
-		,	&ItemRef		// the item reference
-	);
+			, SubSystem.m_SecurePasswordLocation.f_GetLen()
+			, SubSystem.m_SecurePasswordLocation.f_GetStr()
+			, Key.f_GetLen()	// Account name len
+			, Key.f_GetStr()	// Account name
+			, 0				// Password len.
+			, nullptr			// Password
+			, &ItemRef		// the item reference
+		)
+	;
 
 	if (Status == noErr)
 	{
@@ -296,7 +306,8 @@ ESecurePassword NMib::NSys::fg_SecurePassword_Enum(NContainer::TCVector<CStr> & 
 	SecKeychainSearchRef pSearch = nullptr;
 	SecKeychainItemRef pItem = nullptr;
 
-	auto Cleanup = fg_OnScopeExit(
+	auto Cleanup = fg_OnScopeExit
+		(
 			[&]()
 			{
 				if (pSearch)
@@ -306,21 +317,20 @@ ESecurePassword NMib::NSys::fg_SecurePassword_Enum(NContainer::TCVector<CStr> & 
 			}
 		);
 
-	Status = SecKeychainSearchCreateFromAttributes(
+	Status = SecKeychainSearchCreateFromAttributes
+		(
 			NULL 
-		,	kSecGenericPasswordItemClass
-		,	MatchAttribs
-		,	pSearch
-		);
+			, kSecGenericPasswordItemClass
+			, MatchAttribs
+			, pSearch
+		)
+	;
 
 	if (Status != errSecSuccess)
-	{
 		return fg_SecurePassword_Decode_OSStatus(Status);
-	}
 
 	while (SecKeychainSearchCopyNext(pSearch, pItem) == errSecSuccess)
 	{
-
 		CFRelease(pItem);
 		pItem = nullptr;
 	}
@@ -511,7 +521,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		, NMib::NStr::CStr const &_FullName
 		, NMib::NStr::CStr const &_HomeDirectory
 		, NMib::NStr::CStr &_ReturnUID
-	 	, EUserManagementCreateUserFlag _Flags
+		, EUserManagementCreateUserFlag _Flags
 	)
 {
 	int PrimaryGroupID = -1;

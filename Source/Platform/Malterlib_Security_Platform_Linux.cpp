@@ -40,7 +40,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		, NMib::NStr::CStr const &_FullName
 		, NMib::NStr::CStr const &_HomeDirectory
 		, NMib::NStr::CStr &_ReturnUID
-	 	, EUserManagementCreateUserFlag _Flags
+		, EUserManagementCreateUserFlag _Flags
 	)
 {
 	NContainer::TCVector<NMib::NStr::CStr> Flags;
@@ -56,7 +56,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 
 	if (!_Password.f_IsEmpty())
 	{
-		Flags.f_Insert("--password"); 	// Set Password
+		Flags.f_Insert("--password");	// Set Password
 		Flags.f_Insert(_Password);
 	}
 
