@@ -60,6 +60,11 @@ bool NMib::NSys::fg_SecurePassword_IsLocked()
 	return false;
 }
 
+#if DPlatformVersion >= 100100
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure const& _Password)
 {			
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
@@ -279,6 +284,10 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 		return Ret;
 	}
 }
+
+#if DPlatformVersion > 100100
+#pragma clang diagnostic pop
+#endif
 
 bool NMib::NSys::fg_SecurePassword_Supported()
 {
