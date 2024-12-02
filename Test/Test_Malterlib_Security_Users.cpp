@@ -78,8 +78,16 @@ namespace
 				DMibExpect(fg_UserManagement_GetProcessEffectiveGroupName(), !=, "");
 			};
 
-			DMibTestSuite(CTestCategory("General") << CTestGroup("Manual"))
+			DMibTestSuite(CTestCategory("General") << CTestGroup("SuperUser"))
 			{
+				auto fSleep = []
+					{
+#ifdef DPlatformFamily_macOS
+						// Workaround race condition in macOS
+						NMib::NSys::fg_Thread_Sleep(0.1);
+#endif
+					}
+				;
 				CStr TestGroup = "_MalterlibTestGroup";
 				CStr TestGroup2 = "_MalterlibTestGroup2";
 				CStr TestUser = "_MalterlibTestUser";
@@ -88,6 +96,9 @@ namespace
 #if defined(DPlatformFamily_Windows)
 				CStr ExistingUser = "Administrator";
 				CStr ExistingGroup = "Administrators";
+#elif defined(DPlatformFamily_Linux)
+				CStr ExistingUser = "root";
+				CStr ExistingGroup = "root";
 #else
 				CStr ExistingUser = "root";
 				CStr ExistingGroup = "wheel";
@@ -105,21 +116,24 @@ namespace
 
 					if (fg_UserManagement_GroupExists(TestGroup2, ReturnGID))
 						fg_UserManagement_DeleteGroup(TestGroup2);
+
+					fSleep();
 				}
 
 				{
 					DMibTestPath("Groups exists");
 					DMibTest(!DMibExpr(fg_UserManagement_GroupExists(TestGroup, ReturnGID)));
 					DMibTest(DMibExpr(fg_UserManagement_GroupExists(ExistingGroup, ReturnGID)) == DMibExpr(true));
-
 				}
 
 				{
 					DMibTestPath("Groups create");
 					CStr CreatedGID;
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup, CreatedGID)))(ETestFlag_NoValues);
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup2, ReturnGID)))(ETestFlag_NoValues);
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup, ReturnGID)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup, CreatedGID)));
+					fSleep();
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup2, ReturnGID)));
+					fSleep();
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup, ReturnGID)));
 					DMibTest(DMibExpr(fg_UserManagement_GroupExists(TestGroup, ReturnGID)));
 					DMibTest(DMibExpr(CreatedGID) == DMibExpr(ReturnGID));
 
@@ -151,8 +165,8 @@ namespace
 								)
 							)
 						)
-						(ETestFlag_NoValues)
 					;
+					fSleep();
 
 					DMibTest
 						(
@@ -171,8 +185,8 @@ namespace
 								)
 							)
 						)
-						(ETestFlag_NoValues)
 					;
+					fSleep();
 
 					DMibTest(DMibExpr(fg_UserManagement_UserExists(TestUser, ReturnUID)));
 					DMibTest(DMibExpr(CreatedUID) == DMibExpr(ReturnUID));
@@ -184,8 +198,9 @@ namespace
 					DMibTestPath("Add user to group");
 					DMibTest(DMibExpr(fg_UserManagement_UserIsMemberOfGroup(TestGroup2, TestUser)) == DMibExpr(false));
 
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_AddUserToGroup(TestGroup2, TestUser)))(ETestFlag_NoValues);
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_AddUserToGroup(TestGroup2, TestUser)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_AddUserToGroup(TestGroup2, TestUser)));
+					fSleep();
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_AddUserToGroup(TestGroup2, TestUser)));
 
 					DMibTest(DMibExpr(fg_UserManagement_UserIsMemberOfGroup(TestGroup, TestUser)) == DMibExpr(true));
 					DMibTest(DMibExpr(fg_UserManagement_UserIsMemberOfGroup(TestGroup2, TestUser)) == DMibExpr(true));
@@ -194,10 +209,11 @@ namespace
 				{
 					DMibTestPath("Remove user from group");
 
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup2, TestUser)))(ETestFlag_NoValues);
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup2, TestUser)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup2, TestUser)));
+					fSleep();
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup2, TestUser)));
 #if !defined(DPlatformFamily_Windows)
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup, TestUser)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_RemoveUserFromGroup(TestGroup, TestUser)));
 #endif
 
 					DMibTest(DMibExpr(fg_UserManagement_UserIsMemberOfGroup(TestGroup, TestUser)) == DMibExpr(true));
@@ -206,18 +222,21 @@ namespace
 
 				{
 					DMibTestPath("Users delete");
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteUser(TestUser)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteUser(TestUser)));
+					fSleep();
 					DMibTest(DMibExpr(fg_UserManagement_UserExists(TestUser, ReturnUID)) == DMibExpr(false));
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_DeleteUser(TestUser)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_DeleteUser(TestUser)));
 				};
 
 				{
 					DMibTestPath("Groups delete");
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup)));
+					fSleep();
 					DMibTest(DMibExpr(fg_UserManagement_GroupExists(TestGroup, ReturnUID)) == DMibExpr(false));
-					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup2)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup2)));
+					fSleep();
 					DMibTest(DMibExpr(fg_UserManagement_GroupExists(TestGroup2, ReturnUID)) == DMibExpr(false));
-					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup)))(ETestFlag_NoValues);
+					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_DeleteGroup(TestGroup)));
 				};
 			};
 		}
