@@ -45,6 +45,19 @@ namespace
 				return NMib::NSys::ESecurePassword_Failure;
 		}			
 	}
+
+	template <typename tf_FCheck>
+	void fg_WaitForUpdate(tf_FCheck &&_fCheck)
+	{
+		NMib::NTime::CClock Clock{true};
+
+		while (!_fCheck())
+		{
+			NMib::NSys::fg_Thread_SmallestSleep();
+			if (Clock.f_GetTime() > 60.0)
+				DMibError("Timed out waiting for user/group change to come into effect");
+		}
+	}
 }
 
 
@@ -441,39 +454,55 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 
 	int GID;
 	{
-		NMib::NStr::CStr StdOut;
-		NMib::NStr::CStr StdErr;
-		uint32 ExitCode;
-		if 
-			(
-				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Groups", "PrimaryGroupID"), StdOut, StdErr, ExitCode)
-				|| ExitCode != 0
-			)
-		{
-			DMibError(NMib::NStr::CStr::CFormat("Failed to list group: {}") << StdErr);
-		}
+		NMib::NStr::CStr FileLockName = NMib::NFile::CFile::fs_GetRawTemporaryDirectory() / "dscl-gid.lock"; // Prevent race conditions
+		NMib::NFile::CLockFile LockFile(FileLockName);
+		LockFile.f_Lock();
 
-		auto CurrentIDs = fg_GetCurrentIDs(StdOut);
-		GID = fg_GetFreeID(CurrentIDs);
-	}
-	
-	auto fl_dsclCall
-		= [&](NContainer::TCVector<NMib::NStr::CStr> const &_Command)
 		{
 			NMib::NStr::CStr StdOut;
 			NMib::NStr::CStr StdErr;
 			uint32 ExitCode;
-			if (!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", _Command, StdOut, StdErr, ExitCode) || ExitCode != 0)
-				DMibError(NMib::NStr::CStr::CFormat("Error when creating group command: /usr/bin/dscl {} : {}") << fg_UserManagement_CreateParameterString(_Command) << StdErr);
+			if
+				(
+					!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Groups", "PrimaryGroupID"), StdOut, StdErr, ExitCode)
+					|| ExitCode != 0
+				)
+			{
+				DMibError(NMib::NStr::CStr::CFormat("Failed to list group: {}") << StdErr);
+			}
+
+			auto CurrentIDs = fg_GetCurrentIDs(StdOut);
+			GID = fg_GetFreeID(CurrentIDs);
 		}
-	;
-	
-	fl_dsclCall(NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName));
-	fl_dsclCall(NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "PrimaryGroupID", NMib::NStr::CStr::fs_ToStr(GID)));
-	fl_dsclCall(NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName,"Password", "\\*"));
+
+		auto fCallDscl
+			= [&](NContainer::TCVector<NMib::NStr::CStr> const &_Command)
+			{
+				NMib::NStr::CStr StdOut;
+				NMib::NStr::CStr StdErr;
+				uint32 ExitCode;
+				if (!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", _Command, StdOut, StdErr, ExitCode) || ExitCode != 0)
+					DMibError(NMib::NStr::CStr::CFormat("Error when creating group command: /usr/bin/dscl {} : {}") << fg_UserManagement_CreateParameterString(_Command) << StdErr);
+			}
+		;
+
+		fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName});
+		fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "PrimaryGroupID", NMib::NStr::CStr::fs_ToStr(GID)});
+		fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "Password", "\\*"});
+	}
 
 	_ReturnGID = NMib::NStr::CStr::fs_ToStr(GID);
 	fg_UserManagement_ClearGroupCache();
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				NMib::NStr::CStr ID;
+				return NMib::NSys::fg_UserManagement_GroupExists(_GroupName, ID);
+			}
+		)
+	;
 }
 
 void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupName)
@@ -492,6 +521,16 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 		DMibError(NMib::NStr::CStr::CFormat("Failed to delete group: {}") << StdErr);
 	}
 	fg_UserManagement_ClearGroupCache();
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				NMib::NStr::CStr ID;
+				return !NMib::NSys::fg_UserManagement_GroupExists(_GroupName, ID);
+			}
+		)
+	;
 }
 
 NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidUserName(NMib::NStr::CStr const &_UserName)
@@ -659,6 +698,16 @@ l_Retry:
 
 	_ReturnUID = NMib::NStr::CStr::fs_ToStr(UniqueID);
 	fg_UserManagement_ClearUserCache();
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				NMib::NStr::CStr ID;
+				return NMib::NSys::fg_UserManagement_UserExists(_UserName, ID);
+			}
+		)
+	;
 }
 
 void NMib::NSys::fg_UserManagement_DeleteUser(NMib::NStr::CStr const &_UserName)
@@ -683,6 +732,16 @@ void NMib::NSys::fg_UserManagement_DeleteUser(NMib::NStr::CStr const &_UserName)
 		DMibError(NMib::NStr::CStr::CFormat("Failed to delete user: {}") << StdErr);
 	}
 	fg_UserManagement_ClearUserCache();
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				NMib::NStr::CStr ID;
+				return !NMib::NSys::fg_UserManagement_UserExists(_UserName, ID);
+			}
+		)
+	;
 }
 
 void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName)
@@ -712,6 +771,16 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 	}
 	fg_UserManagement_ClearUserCache();
 	fg_UserManagement_ClearGroupCache();
+
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				return NMib::NSys::fg_UserManagement_UserIsMemberOfGroup(_GroupName, _UserName);
+			}
+		)
+	;
 }
 
 void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName)
@@ -740,6 +809,15 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	}
 	fg_UserManagement_ClearUserCache();
 	fg_UserManagement_ClearGroupCache();
+
+	fg_WaitForUpdate
+		(
+			[&]
+			{
+				return !NMib::NSys::fg_UserManagement_UserIsMemberOfGroup(_GroupName, _UserName);
+			}
+		)
+	;
 }
 
 bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
