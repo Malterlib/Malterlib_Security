@@ -17,6 +17,11 @@ namespace
 			if (!NSys::fg_SecurePassword_Supported() || NSys::fg_SecurePassword_IsLocked())
 				return; // Not supported
 
+#ifdef DPlatformFamily_macOS
+			if (!fg_GetSys()->f_GetEnvironmentVariable("SSH_CLIENT").f_IsEmpty())
+				return;
+#endif
+
 			NStr::CStr TestKey = "TestKey";
 			NStr::CStrSecure TestPassword = "TestPassword";
 
