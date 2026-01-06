@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -44,7 +44,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	)
 {
 	NContainer::TCVector<NMib::NStr::CStr> Flags;
-	
+
 	Flags =	NContainer::fg_CreateVector<NMib::NStr::CStr>(
 		"-d", _HomeDirectory	// Set home directory
 		, "-c", _FullName	// Name in comment
@@ -61,11 +61,11 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	}
 
 	Flags.f_Insert(_UserName);
-	
+
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
 	uint32 ExitCode;
-	
+
 	if
 		(
 			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/sbin/useradd", Flags, StdOut, StdErr, ExitCode)
@@ -73,14 +73,14 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Error creating user {}: /usr/sbin/useradd failed with {}") << _UserName << StdErr);
 	}
-	
+
 	if (ExitCode == 0)
 	{
 		if (NSys::fg_UserManagement_UserExists(_UserName, _ReturnUID))
 			return;
 		DMibError(NMib::NStr::CStr::CFormat("Error creating user {}: Unknown error {} {}") << StdOut << StdErr);
 	}
-	
+
 	DMibError(NMib::NStr::CStr::CFormat("Error creating user {}: {} {}") << _UserName << ExitCode << StdErr);
 }
 
@@ -114,7 +114,7 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Error creating group {}: /usr/sbin/groupadd failed with {}") << _GroupName << StdErr);
 	}
-	
+
 	if (ExitCode == 0)
 	{
 		if (NSys::fg_UserManagement_GroupExists(_GroupName, _ReturnGID))
@@ -169,7 +169,7 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 	NMib::NStr::CStr AddGID;
 	if (!NMib::NSys::fg_UserManagement_GroupExists(_GroupName, AddGID))
 		DMibError(NMib::NStr::CStr::CFormat("Error adding user to group: Group '{}' does not exist") << _GroupName);
-		
+
 	auto CurrentMembers = NMib::NSys::fg_UserManagement_UserGetMemberOfGroups(_UserName);
 
 	NMib::NStr::CStr NewGroupMembers;
@@ -181,7 +181,7 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 	}
 
 	fg_AddStrSep(NewGroupMembers, AddGID, ",");
-	
+
 	uint32 ExitCode;
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
@@ -203,7 +203,7 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	NMib::NStr::CStr RemoveGID;
 	if (!NMib::NSys::fg_UserManagement_GroupExists(_GroupName, RemoveGID))
 		DMibError(NMib::NStr::CStr::CFormat("Error removing user from group: Group '{}' does not exist") << _GroupName);
-		
+
 	auto CurrentMembers = NMib::NSys::fg_UserManagement_UserGetMemberOfGroups(_UserName);
 
 	bool bFound = false;
@@ -220,7 +220,7 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 		DMibError(NMib::NStr::CStr::CFormat("Error removing user from group: User '{}' is not a member of group '{}'") << _UserName << _GroupName);
 	else if (NewGroupMembers.f_IsEmpty())
 		DMibError(NMib::NStr::CStr::CFormat("Error removing user from group: Cannot remove '{}' from its last group") << _UserName);
-	
+
 	uint32 ExitCode;
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
@@ -241,7 +241,7 @@ bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 {
 	// Usernames must start with a lower case letter or an underscore, followed by lower case letters, digits, underscores, or dashes.
 	// They can end with a dollar sign. In regular expression terms: [a-z_][a-z0-9_-]*[$]?
-	
+
 	aint iParse = 0;
 	aint LastPos = _Name.f_GetLen()-1;
 	ch32 Current = _Name.f_GetAt(iParse);

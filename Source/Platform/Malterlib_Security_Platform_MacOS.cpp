@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -11,7 +11,7 @@
 	Basic interface for storing secure passwords on a per-user, per-application basis.
 */
 
-namespace 
+namespace
 {
 	struct CSubSystem_Security_Platform_MacOS_SecurePassword : public NMib::CSubSystem
 	{
@@ -21,7 +21,7 @@ namespace
 	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_MacOS_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
 		g_SubSystem_Security_Platform_MacOS_SecurePassword = {DAggregateInit}
 	;
-	
+
 	static NMib::NSys::ESecurePassword fg_SecurePassword_Decode_OSStatus(OSStatus _Status)
 	{
 		switch(_Status)
@@ -43,7 +43,7 @@ namespace
 
 			default:
 				return NMib::NSys::ESecurePassword_Failure;
-		}			
+		}
 	}
 
 	template <typename tf_FCheck>
@@ -79,7 +79,7 @@ bool NMib::NSys::fg_SecurePassword_IsLocked()
 #endif
 
 NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure const& _Password)
-{			
+{
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
@@ -264,7 +264,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
 
 //			DMibLog(Error, "NSys::fg_SecurePassword_Exists - Looking for {}", _Key);
-	
+
 	NMib::NStr::CStr Key = _Key;
 
 	OSStatus Status;
@@ -341,7 +341,7 @@ ESecurePassword NMib::NSys::fg_SecurePassword_Enum(NContainer::TCVector<CStr> & 
 
 	Status = SecKeychainSearchCreateFromAttributes
 		(
-			NULL 
+			NULL
 			, kSecGenericPasswordItemClass
 			, MatchAttribs
 			, pSearch
@@ -364,14 +364,14 @@ namespace
 	NMib::NStr::CStr fg_UserManagement_CreateParameterString(NMib::NContainer::TCVector<NMib::NStr::CStr> const &_Parameters)
 	{
 		NMib::NStr::CStr Result;
-		
+
 		auto iParam = _Parameters.f_GetIterator();
 		while (iParam)
 		{
 			fg_AddStrSepEscaped(Result, *iParam, ' ');
 			++iParam;
 		}
-		
+
 		return Result;
 	}
 
@@ -391,7 +391,7 @@ namespace
 			if (NewValue >= 0)
 				IDs[NewValue];
 		}
-		
+
 		return IDs;
 	}
 
@@ -428,7 +428,7 @@ namespace
 	{
 		// This disables caching of group entries
 		gL1CacheEnabled = 0;
-	}	
+	}
 
 	void fg_UserManagement_ClearUserCache()
 	{
@@ -439,7 +439,7 @@ namespace
 
 void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &_ReturnGID)
 {
-	
+
 	int PrimaryGroupID = -1;
 
 	{
@@ -450,7 +450,7 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 		(NMib::NStr::CStr::CParse("PrimaryGroupID: {}") >> PrimaryGroupID).f_Parse(StdOut);
 		if (PrimaryGroupID != -1)
 			DMibError(NMib::NStr::CStr::CFormat("Group already exists: {}") << _GroupName);
-	}			
+	}
 
 	int GID;
 	{
@@ -509,7 +509,7 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 {
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
-	
+
 	uint32 ExitCode;
 
 	if
@@ -578,7 +578,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		NMib::NStr::CStr StdOut;
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
-		if 
+		if
 			(
 				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 				(
@@ -591,20 +591,20 @@ void NMib::NSys::fg_UserManagement_CreateUser
 			)
 		{
 		}
-	
+
 		(NMib::NStr::CStr::CParse("PrimaryGroupID: {}") >> PrimaryGroupID).f_Parse(StdOut);
 		if (PrimaryGroupID == -1)
 			DMibError(NMib::NStr::CStr::CFormat("Group does not exists: {} ({})") << _InGroupName << StdErr);
 	}
-	
-	
+
+
 	int UniqueID = -1;
 
 	{
 		NMib::NStr::CStr StdOut;
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
-		if 
+		if
 			(
 				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 				(
@@ -617,7 +617,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 			)
 		{
 		}
-	
+
 		(NMib::NStr::CStr::CParse("UniqueID: {}") >> UniqueID).f_Parse(StdOut);
 		if (UniqueID != -1)
 			DMibError(NMib::NStr::CStr::CFormat("User already exist: {} ()") << _UserName << StdErr);
@@ -629,7 +629,7 @@ l_Retry:
 		NMib::NStr::CStr StdOut;
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
-		if 
+		if
 			(
 				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 				(
@@ -644,18 +644,18 @@ l_Retry:
 		{
 			DMibError(NMib::NStr::CStr::CFormat("Failed to list users: {}") << StdErr);
 		}
-		
+
 		auto CurrentIDs = fg_GetCurrentIDs(StdOut);
 		UniqueID = fg_GetFreeID(CurrentIDs);
 	}
-	
+
 	auto fCallDscl
 		= [&](NMib::NContainer::TCVector<NMib::NStr::CStr> const &_Command)
 		{
 			NMib::NStr::CStr StdOut;
 			NMib::NStr::CStr StdErr;
 			uint32 ExitCode;
-			if 
+			if
 				(
 					!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 					(
@@ -672,7 +672,7 @@ l_Retry:
 			}
 		}
 	;
-	
+
 	fCallDscl({".", "-create", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName});
 
 	try
@@ -716,7 +716,7 @@ void NMib::NSys::fg_UserManagement_DeleteUser(NMib::NStr::CStr const &_UserName)
 	NMib::NStr::CStr StdErr;
 	uint32 ExitCode;
 
-	if 
+	if
 		(
 			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(
@@ -748,13 +748,13 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 {
 	if (NMib::NSys::fg_UserManagement_UserIsMemberOfGroup(_GroupName, _UserName))
 		DMibError(NMib::NStr::CStr::CFormat("User {} does already exist in group {}") << _UserName << _GroupName);
-	
+
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
 
 	uint32 ExitCode;
 
-	if 
+	if
 		(
 			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(
@@ -787,12 +787,12 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 {
 	if (!NMib::NSys::fg_UserManagement_UserIsMemberOfGroup(_GroupName, _UserName))
 		DMibError(NMib::NStr::CStr::CFormat("User {} does not exist in group {}") << _UserName << _GroupName);
-	
+
 	NMib::NStr::CStr StdOut;
 	NMib::NStr::CStr StdErr;
 	uint32 ExitCode;
 
-	if 
+	if
 		(
 			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(

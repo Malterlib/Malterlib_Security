@@ -1,4 +1,4 @@
-// Copyright © 2015 Hansoft AB 
+// Copyright © 2015 Hansoft AB
 // Distributed under the MIT license, see license text in LICENSE.Malterlib
 
 #include <Mib/Core/Core>
@@ -8,7 +8,7 @@
 #include <Windows.h>
 #include <wincrypt.h>
 
-namespace 
+namespace
 {
 	struct CSubSystem_Security_Platform_Windows_SecurePassword : public NMib::CSubSystem
 	{
@@ -42,7 +42,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	DATA_BLOB DataOut;
 	DATA_BLOB Entropy;
 
-	DataIn.pbData = (BYTE*)_Password.f_GetStr();    
+	DataIn.pbData = (BYTE*)_Password.f_GetStr();
 	DataIn.cbData = _Password.f_GetLen();
 
 	NCryptography::CHashDigest_SHA1 KeyDigest;
