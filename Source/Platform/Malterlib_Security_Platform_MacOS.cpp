@@ -49,12 +49,12 @@ namespace
 	template <typename tf_FCheck>
 	void fg_WaitForUpdate(tf_FCheck &&_fCheck)
 	{
-		NMib::NTime::CClock Clock{true};
+		NMib::NTime::CStopwatch Stopwatch{true};
 
 		while (!_fCheck())
 		{
 			NMib::NSys::fg_Thread_SmallestSleep();
-			if (Clock.f_GetTime() > 60.0)
+			if (Stopwatch.f_GetTime() > 60.0)
 				DMibError("Timed out waiting for user/group change to come into effect");
 		}
 	}
