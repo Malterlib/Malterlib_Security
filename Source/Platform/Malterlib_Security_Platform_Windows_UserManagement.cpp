@@ -450,7 +450,7 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 	LOCALGROUP_USERS_INFO_0 *pEntries = (LOCALGROUP_USERS_INFO_0 *)pData;
 
 	NMib::NContainer::TCVector<NMib::NStr::CStr>  Return;
-	for (mint i = 0; i < EntriesRead; ++i)
+	for (umint i = 0; i < EntriesRead; ++i)
 		Return.f_Insert(NMib::NStr::CWStr(pEntries[i].lgrui0_name));
 
 	return Return;

@@ -623,7 +623,7 @@ void NMib::NSys::fg_UserManagement_CreateUser
 			DMibError(NMib::NStr::CStr::CFormat("User already exist: {} ()") << _UserName << StdErr);
 	}
 
-	mint nRetry = 0;
+	umint nRetry = 0;
 l_Retry:
 	{
 		NMib::NStr::CStr StdOut;
