@@ -18,31 +18,27 @@ namespace
 		NMib::NStr::CStr m_SecurePasswordLocation;
 	};
 
-	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_MacOS_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager>
-		g_SubSystem_Security_Platform_MacOS_SecurePassword = {DAggregateInit}
+	constinit NMib::TCSubSystem<CSubSystem_Security_Platform_MacOS_SecurePassword, NMib::ESubSystemDestruction_BeforeMemoryManager> g_SubSystem_Security_Platform_MacOS_SecurePassword =
+		{
+			DAggregateInit
+		}
 	;
 
 	static NMib::NSys::ESecurePassword fg_SecurePassword_Decode_OSStatus(OSStatus _Status)
 	{
-		switch(_Status)
+		switch (_Status)
 		{
-			case errSecDuplicateItem:
-				return NMib::NSys::ESecurePassword_Duplicate;
+		case errSecDuplicateItem: return NMib::NSys::ESecurePassword_Duplicate;
 
-			case errSecDataTooLarge:
-				return NMib::NSys::ESecurePassword_TooLarge;
+		case errSecDataTooLarge: return NMib::NSys::ESecurePassword_TooLarge;
 
-			case errSecAuthFailed:
-				return NMib::NSys::ESecurePassword_AuthFailed;
+		case errSecAuthFailed: return NMib::NSys::ESecurePassword_AuthFailed;
 
-			case errSecItemNotFound:
-				return NMib::NSys::ESecurePassword_NotFound;
+		case errSecItemNotFound: return NMib::NSys::ESecurePassword_NotFound;
 
-			case noErr:
-				return NMib::NSys::ESecurePassword_OK;
+		case noErr: return NMib::NSys::ESecurePassword_OK;
 
-			default:
-				return NMib::NSys::ESecurePassword_Failure;
+		default: return NMib::NSys::ESecurePassword_Failure;
 		}
 	}
 
@@ -60,8 +56,7 @@ namespace
 	}
 }
 
-
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const& _Location)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_SetLocation(NMib::NStr::CStr const &_Location)
 {
 	g_SubSystem_Security_Platform_MacOS_SecurePassword->m_SecurePasswordLocation = _Location;
 
@@ -74,11 +69,11 @@ bool NMib::NSys::fg_SecurePassword_IsLocked()
 }
 
 #if DPlatformVersion >= 100100
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure const& _Password)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr const &_Key, NMib::NStr::CStrSecure const &_Password)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
@@ -91,14 +86,14 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 
 	Status = SecKeychainAddGenericPassword
 		(
-			NULL			// Default keychain
+			NULL // Default keychain
 			, SubSystem.m_SecurePasswordLocation.f_GetLen()
 			, SubSystem.m_SecurePasswordLocation.f_GetStr()
-			, Key.f_GetLen()	// Account name len
-			, Key.f_GetStr()	// Account name
+			, Key.f_GetLen() // Account name len
+			, Key.f_GetStr() // Account name
 			, Password.f_GetLen() // Password len.
-			, Password.f_GetStr()	// Password
-			, NULL			// the item reference
+			, Password.f_GetStr() // Password
+			, NULL // the item reference
 		)
 	;
 
@@ -106,19 +101,19 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	{ // Already exists, try changing the existing entry.
 
 		SecKeychainItemRef ItemRef = nullptr;
-		void* pExistingPassword = nullptr;
+		void *pExistingPassword = nullptr;
 		UInt32 nExistingPasswordBytes = 0;
 
 		Status = SecKeychainFindGenericPassword
 			(
-				nullptr			// Default keychain
+				nullptr // Default keychain
 				, SubSystem.m_SecurePasswordLocation.f_GetLen()
 				, SubSystem.m_SecurePasswordLocation.f_GetStr()
-				, Key.f_GetLen()	// Account name len
-				, Key.f_GetStr()	// Account name
-				, &nExistingPasswordBytes				// Password len.
-				, &pExistingPassword			// Password
-				, &ItemRef		// the item reference
+				, Key.f_GetLen() // Account name len
+				, Key.f_GetStr() // Account name
+				, &nExistingPasswordBytes // Password len.
+				, &pExistingPassword // Password
+				, &ItemRef // the item reference
 			)
 		;
 
@@ -127,7 +122,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 			NMib::NStr::CStrSecure ExistingPassword{(ch8 const *)pExistingPassword, nExistingPasswordBytes};
 			bool bPasswordEqual = Password == ExistingPassword;
 
-			NMemory::fg_ObjectSet((uint8*)pExistingPassword, 0, nExistingPasswordBytes);
+			NMemory::fg_ObjectSet((uint8 *)pExistingPassword, 0, nExistingPasswordBytes);
 
 			SecKeychainItemFreeContent(NULL, pExistingPassword);
 
@@ -137,12 +132,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 				return ESecurePassword_OK; // Password is already correct.
 			}
 
-			Status = SecKeychainItemModifyAttributesAndData(
-							ItemRef
-						,	nullptr
-						,	Password.f_GetLen()
-						,	Password.f_GetStr()
-					);
+			Status = SecKeychainItemModifyAttributesAndData(ItemRef, nullptr, Password.f_GetLen(), Password.f_GetStr());
 
 			CFRelease(ItemRef);
 
@@ -159,14 +149,13 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 				DMibLog(Error, "NSys::fg_SecurePassword_Store - SecKeychainFindGenericPassword failed with {}", (int)Status);
 			return Ret;
 		}
-
 	}
 
 	// May be required to get string version of error here in the future.
 	return fg_SecurePassword_Decode_OSStatus(Status);
 }
 
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CStr const& _Key)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CStr const &_Key)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
@@ -178,14 +167,14 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 
 	Status = SecKeychainFindGenericPassword
 		(
-			nullptr			// Default keychain
+			nullptr // Default keychain
 			, SubSystem.m_SecurePasswordLocation.f_GetLen()
 			, SubSystem.m_SecurePasswordLocation.f_GetStr()
-			, Key.f_GetLen()	// Account name len
-			, Key.f_GetStr()	// Account name
-			, 0				// Password len.
-			, nullptr			// Password
-			, &ItemRef		// the item reference
+			, Key.f_GetLen() // Account name len
+			, Key.f_GetStr() // Account name
+			, 0 // Password len.
+			, nullptr // Password
+			, &ItemRef // the item reference
 		)
 	;
 
@@ -207,7 +196,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 	}
 }
 
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr const& _Key, NMib::NStr::CStrSecure& _oPassword)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr const &_Key, NMib::NStr::CStrSecure &_oPassword)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
@@ -216,7 +205,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 	NMib::NStr::CStr Key = _Key;
 
-	void* pPassword = nullptr;
+	void *pPassword = nullptr;
 	UInt32 nPasswordBytes = 0;
 
 	OSStatus Status;
@@ -224,22 +213,22 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 	Status = SecKeychainFindGenericPassword
 		(
-			nullptr			// Default keychain
+			nullptr // Default keychain
 			, SubSystem.m_SecurePasswordLocation.f_GetLen()
 			, SubSystem.m_SecurePasswordLocation.f_GetStr()
-			, Key.f_GetLen()	// Account name len
-			, Key.f_GetStr()	// Account name
+			, Key.f_GetLen() // Account name len
+			, Key.f_GetStr() // Account name
 			, &nPasswordBytes // Password len.
-			, &pPassword		// Password
-			, &ItemRef			// the item reference
+			, &pPassword // Password
+			, &ItemRef // the item reference
 		)
 	;
 
 	if (Status == noErr)
 	{
-		_oPassword = NMib::NStr::CStrSecure( (NMib::NStr::CStrSecure::CChar*)pPassword, nPasswordBytes);
+		_oPassword = NMib::NStr::CStrSecure((NMib::NStr::CStrSecure::CChar *)pPassword, nPasswordBytes);
 
-		NMemory::fg_ObjectSet((uint8*)pPassword, 0, nPasswordBytes);
+		NMemory::fg_ObjectSet((uint8 *)pPassword, 0, nPasswordBytes);
 
 		SecKeychainItemFreeContent(NULL, pPassword);
 
@@ -255,10 +244,9 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 			DMibLog(Error, "NSys::fg_SecurePassword_Get - SecKeychainFindGenericPassword failed with {}", (int)Status);
 		return Ret;
 	}
-
 }
 
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CStr const& _Key)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CStr const &_Key)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_MacOS_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
@@ -272,14 +260,14 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 
 	Status = SecKeychainFindGenericPassword
 		(
-			nullptr			// Default keychain
+			nullptr // Default keychain
 			, SubSystem.m_SecurePasswordLocation.f_GetLen()
 			, SubSystem.m_SecurePasswordLocation.f_GetStr()
-			, Key.f_GetLen()	// Account name len
-			, Key.f_GetStr()	// Account name
-			, 0				// Password len.
-			, nullptr			// Password
-			, &ItemRef		// the item reference
+			, Key.f_GetLen() // Account name len
+			, Key.f_GetStr() // Account name
+			, 0 // Password len.
+			, nullptr // Password
+			, &ItemRef // the item reference
 		)
 	;
 
@@ -299,14 +287,13 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 }
 
 #if DPlatformVersion > 100100
-#pragma clang diagnostic pop
+#	pragma clang diagnostic pop
 #endif
 
 bool NMib::NSys::fg_SecurePassword_Supported()
 {
 	return true;
 }
-
 
 /*
 ESecurePassword NMib::NSys::fg_SecurePassword_Enum(NContainer::TCVector<CStr> & _oKeys)
@@ -439,14 +426,21 @@ namespace
 
 void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &_ReturnGID)
 {
-
 	int PrimaryGroupID = -1;
 
 	{
 		NMib::NStr::CStr StdOut;
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
-		NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "PrimaryGroupID"), StdOut, StdErr, ExitCode);
+		NMib::NProcess::CProcessLaunch::fs_LaunchBlock
+			(
+				"/usr/bin/dscl"
+				, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "PrimaryGroupID")
+				, StdOut
+				, StdErr
+				, ExitCode
+			)
+		;
 		(NMib::NStr::CStr::CParse("PrimaryGroupID: {}") >> PrimaryGroupID).f_Parse(StdOut);
 		if (PrimaryGroupID != -1)
 			DMibError(NMib::NStr::CStr::CFormat("Group already exists: {}") << _GroupName);
@@ -463,10 +457,17 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 			NMib::NStr::CStr StdErr;
 			uint32 ExitCode;
 			if
+			(
+				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 				(
-					!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Groups", "PrimaryGroupID"), StdOut, StdErr, ExitCode)
-					|| ExitCode != 0
+					"/usr/bin/dscl"
+					, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Groups", "PrimaryGroupID")
+					, StdOut
+					, StdErr
+					, ExitCode
 				)
+				|| ExitCode != 0
+			)
 			{
 				DMibError(NMib::NStr::CStr::CFormat("Failed to list group: {}") << StdErr);
 			}
@@ -475,8 +476,7 @@ void NMib::NSys::fg_UserManagement_CreateGroup(NMib::NStr::CStr const &_GroupNam
 			GID = fg_GetFreeID(CurrentIDs);
 		}
 
-		auto fCallDscl
-			= [&](NContainer::TCVector<NMib::NStr::CStr> const &_Command)
+		auto fCallDscl = [&](NContainer::TCVector<NMib::NStr::CStr> const &_Command)
 			{
 				NMib::NStr::CStr StdOut;
 				NMib::NStr::CStr StdErr;
@@ -513,10 +513,17 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 	uint32 ExitCode;
 
 	if
+	(
+		!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 		(
-			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName), StdOut, StdErr, ExitCode)
-			|| ExitCode != 0
+			"/usr/bin/dscl"
+			, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName)
+			, StdOut
+			, StdErr
+			, ExitCode
 		)
+		|| ExitCode != 0
+	)
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Failed to delete group: {}") << StdErr);
 	}
@@ -552,11 +559,7 @@ NMib::NStr::CStr NMib::NSys::fg_UserManagement_MakeValidGroupName(NMib::NStr::CS
 	return fg_UserManagement_MakeValidUserName(_GroupName);
 }
 
-void NMib::NSys::fg_UserManagement_SetUserPassword
-	(
-		NMib::NStr::CStr const &_UserName
-		, NMib::NStr::CStrSecure const &_Password
-	)
+void NMib::NSys::fg_UserManagement_SetUserPassword(NMib::NStr::CStr const &_UserName, NMib::NStr::CStrSecure const &_Password)
 {
 	DMibError("Not implemented");
 }
@@ -579,16 +582,16 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
 		if
+		(
+			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(
-				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-				(
-					"/usr/bin/dscl"
-					, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Groups/{0}") << _InGroupName, "PrimaryGroupID")
-					, StdOut
-					, StdErr
-					, ExitCode
-				)
+				"/usr/bin/dscl"
+				, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Groups/{0}") << _InGroupName, "PrimaryGroupID")
+				, StdOut
+				, StdErr
+				, ExitCode
 			)
+		)
 		{
 		}
 
@@ -597,7 +600,6 @@ void NMib::NSys::fg_UserManagement_CreateUser
 			DMibError(NMib::NStr::CStr::CFormat("Group does not exists: {} ({})") << _InGroupName << StdErr);
 	}
 
-
 	int UniqueID = -1;
 
 	{
@@ -605,16 +607,16 @@ void NMib::NSys::fg_UserManagement_CreateUser
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
 		if
+		(
+			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(
-				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-				(
-					"/usr/bin/dscl"
-					, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID")
-					, StdOut
-					, StdErr
-					, ExitCode
-				)
+				"/usr/bin/dscl"
+				, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-read", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName, "UniqueID")
+				, StdOut
+				, StdErr
+				, ExitCode
 			)
+		)
 		{
 		}
 
@@ -630,17 +632,17 @@ l_Retry:
 		NMib::NStr::CStr StdErr;
 		uint32 ExitCode;
 		if
+		(
+			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 			(
-				!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-				(
-					"/usr/bin/dscl"
-					, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Users", "UniqueID")
-					, StdOut
-					, StdErr
-					, ExitCode
-				)
-				|| ExitCode != 0
+				"/usr/bin/dscl"
+				, NMib::NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-list", "/Users", "UniqueID")
+				, StdOut
+				, StdErr
+				, ExitCode
 			)
+			|| ExitCode != 0
+		)
 		{
 			DMibError(NMib::NStr::CStr::CFormat("Failed to list users: {}") << StdErr);
 		}
@@ -649,27 +651,13 @@ l_Retry:
 		UniqueID = fg_GetFreeID(CurrentIDs);
 	}
 
-	auto fCallDscl
-		= [&](NMib::NContainer::TCVector<NMib::NStr::CStr> const &_Command)
+	auto fCallDscl = [&](NMib::NContainer::TCVector<NMib::NStr::CStr> const &_Command)
 		{
 			NMib::NStr::CStr StdOut;
 			NMib::NStr::CStr StdErr;
 			uint32 ExitCode;
-			if
-				(
-					!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-					(
-						"/usr/bin/dscl"
-						, _Command
-						, StdOut
-						, StdErr
-						, ExitCode
-					)
-					|| ExitCode != 0
-				)
-			{
+			if (!NMib::NProcess::CProcessLaunch::fs_LaunchBlock("/usr/bin/dscl", _Command, StdOut, StdErr, ExitCode) || ExitCode != 0)
 				DMibError(NMib::NStr::CStr::CFormat("Error when creating user command {} : {}") << fg_UserManagement_CreateParameterString(_Command) << StdErr);
-			}
 		}
 	;
 
@@ -717,17 +705,17 @@ void NMib::NSys::fg_UserManagement_DeleteUser(NMib::NStr::CStr const &_UserName)
 	uint32 ExitCode;
 
 	if
+	(
+		!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 		(
-			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-			(
-				"/usr/bin/dscl"
-				, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName)
-				, StdOut
-				, StdErr
-				, ExitCode
-			)
-			|| ExitCode != 0
+			"/usr/bin/dscl"
+			, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Users/{0}") << _UserName)
+			, StdOut
+			, StdErr
+			, ExitCode
 		)
+		|| ExitCode != 0
+	)
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Failed to delete user: {}") << StdErr);
 	}
@@ -755,23 +743,22 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 	uint32 ExitCode;
 
 	if
+	(
+		!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 		(
-			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-			(
-				"/usr/bin/dscl"
-				, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-append", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "GroupMembership", _UserName)
-				, StdOut
-				, StdErr
-				, ExitCode
-			)
-			|| ExitCode != 0
+			"/usr/bin/dscl"
+			, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-append", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "GroupMembership", _UserName)
+			, StdOut
+			, StdErr
+			, ExitCode
 		)
+		|| ExitCode != 0
+	)
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Failed to add user {} to group {}: {}") << _UserName << _GroupName << StdErr);
 	}
 	fg_UserManagement_ClearUserCache();
 	fg_UserManagement_ClearGroupCache();
-
 
 	fg_WaitForUpdate
 		(
@@ -793,17 +780,17 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	uint32 ExitCode;
 
 	if
+	(
+		!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
 		(
-			!NMib::NProcess::CProcessLaunch::fs_LaunchBlock
-			(
-				"/usr/bin/dscl"
-				, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "GroupMembership", _UserName)
-				, StdOut
-				, StdErr
-				, ExitCode
-			)
-			|| ExitCode != 0
+			"/usr/bin/dscl"
+			, NContainer::fg_CreateVector<NMib::NStr::CStr>(".", "-delete", NMib::NStr::CStr::CFormat("/Groups/{0}") << _GroupName, "GroupMembership", _UserName)
+			, StdOut
+			, StdErr
+			, ExitCode
 		)
+		|| ExitCode != 0
+	)
 	{
 		DMibError(NMib::NStr::CStr::CFormat("Failed to delete user {} from group {}: {}") << _UserName << _GroupName << StdErr);
 	}

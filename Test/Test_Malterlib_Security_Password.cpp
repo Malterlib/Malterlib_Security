@@ -7,11 +7,9 @@ using namespace NMib;
 
 namespace
 {
-
 	class CSecurePassword_Tests : public NMib::NTest::CTest
 	{
 	public:
-
 		void f_DoTests()
 		{
 			if (!NSys::fg_SecurePassword_Supported() || NSys::fg_SecurePassword_IsLocked())
@@ -33,12 +31,12 @@ namespace
 					DMibTestPath("SetLocation");
 					NStr::CStr Location;
 
-					#ifdef DPlatformFamily_Windows
-						Location = "Software\\Malterlib\\MalterlibTests_General\\SecureStore";
-					#else
-						Location = "MalterlibTests_General";
+#ifdef DPlatformFamily_Windows
+					Location = "Software\\Malterlib\\MalterlibTests_General\\SecureStore";
+#else
+					Location = "MalterlibTests_General";
 
-					#endif
+#endif
 
 					NSys::ESecurePassword SetLocationRet = NSys::fg_SecurePassword_SetLocation(Location);
 
@@ -92,5 +90,4 @@ namespace
 	};
 
 	DMibTestRegister(CSecurePassword_Tests, Malterlib::Security);
-
 }
