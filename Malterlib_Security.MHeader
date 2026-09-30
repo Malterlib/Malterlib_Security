@@ -50,7 +50,7 @@ Property
 Property
 {
 	!!MalterlibEnableInternalTests true
-	
+
 	MalterlibTests =+ "Malterlib_Security"
 	MalterlibTestFiles_Malterlib_Security: [type(CEntity)] = ["Test/*"->MakeAbsolute()]
 }

@@ -12,7 +12,6 @@ namespace
 	class CUser_Tests : public NMib::NTest::CTest
 	{
 	public:
-
 		void f_DoTests()
 		{
 			using namespace NMib::NSys;
@@ -50,7 +49,6 @@ namespace
 
 				DMibTest(DMibExpr(fg_UserManagement_IsValidName("val1d")) == DMibExpr(bWithDigit));
 				DMibTest(DMibExpr(fg_UserManagement_IsValidName("1valid")) == DMibExpr(bDigitFirst));
-
 
 				DMibTest(DMibExpr(fg_UserManagement_IsValidName("val_id")) == DMibExpr(bWithUnderscore));
 				DMibTest(DMibExpr(fg_UserManagement_IsValidName("_valid")) == DMibExpr(bUnderscoreFirst));
@@ -124,7 +122,6 @@ namespace
 					DMibTest(DMibExpr(TCThrowsException<NMib::NException::CException>()) == DMibLExpr(fg_UserManagement_CreateGroup(TestGroup, ReturnGID)));
 					DMibTest(DMibExpr(fg_UserManagement_GroupExists(TestGroup, ReturnGID)));
 					DMibTest(DMibExpr(CreatedGID) == DMibExpr(ReturnGID));
-
 				};
 
 				{

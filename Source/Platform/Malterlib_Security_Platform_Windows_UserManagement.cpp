@@ -71,11 +71,7 @@ void NMib::NSys::fg_UserManagement_DeleteGroup(NMib::NStr::CStr const &_GroupNam
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDel: {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
 }
 
-void NMib::NSys::fg_UserManagement_SetUserPassword
-	(
-		NMib::NStr::CStr const &_UserName
-		, NMib::NStr::CStrSecure const &_Password
-	)
+void NMib::NSys::fg_UserManagement_SetUserPassword(NMib::NStr::CStr const &_UserName, NMib::NStr::CStrSecure const &_Password)
 {
 	NMib::NStr::CWStr UserName = NMib::NStr::NPlatform::fg_StrToWindows(_UserName);
 	NMib::NStr::CWStr Password = NMib::NStr::NPlatform::fg_StrToWindows<NMib::NStr::CWStrSecure>(_Password);
@@ -116,7 +112,19 @@ void NMib::NSys::fg_UserManagement_CreateUser
 	NET_API_STATUS Status = NetUserAdd(nullptr, 1, (uint8 *)&UserInfo, &ParmError);
 
 	if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserAdd('{}'), param {}: {}") << _UserName << ParmError << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+	{
+		DMibError
+			(
+				(
+					NMib::NStr::CFStr256::CFormat("Windows returned an error from NetUserAdd('{}'), param {}: {}")
+					<< _UserName
+					<< ParmError
+					<< NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)
+				)
+				.f_GetStr()
+			)
+		;
+	}
 
 	USER_INFO_1011 FullNameInfo;
 	NMemory::fg_MemClear(FullNameInfo);
@@ -165,7 +173,19 @@ void NMib::NSys::fg_UserManagement_AddUserToGroup(NMib::NStr::CStr const &_Group
 	NET_API_STATUS Status = NetLocalGroupAddMembers(nullptr, GroupName.f_GetStr(), 3, (uint8 *)&Members, 1);
 
 	if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupAddMembers('{}', '{}'): {}") << _GroupName << _UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+	{
+		DMibError
+			(
+				(
+					NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupAddMembers('{}', '{}'): {}")
+					<< _GroupName
+					<< _UserName
+					<< NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)
+				)
+				.f_GetStr()
+			)
+		;
+	}
 }
 
 void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr const &_UserName)
@@ -179,13 +199,25 @@ void NMib::NSys::fg_UserManagement_RemoveUserFromGroup(NMib::NStr::CStr const &_
 	NET_API_STATUS Status = NetLocalGroupDelMembers(nullptr, GroupName.f_GetStr(), 3, (uint8 *)&Members, 1);
 
 	if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDelMembers('{}', '{}'): {}") << _GroupName << _UserName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+	{
+		DMibError
+			(
+				(
+					NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupDelMembers('{}', '{}'): {}")
+					<< _GroupName
+					<< _UserName
+					<< NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)
+				)
+				.f_GetStr()
+			)
+		;
+	}
 }
 
- bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
+bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 {
 	if (_Name.f_FindChars("\"/\\[]:|<>+=,;?*") >= 0 || _Name.f_EndsWith("."))
-		 return false;
+		return false;
 
 	for (auto pParse = _Name.f_GetStr(); *pParse; ++pParse)
 	{
@@ -224,7 +256,7 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealUser()
 	NMib::NStr::CWStr UserName;
 	uint32 UserNameSize = 8192;
 
-	if (!LookupAccountSid(nullptr, TokenUserInfo.User.Sid, UserName.f_GetStr(8192 + 1), &UserNameSize, ReferencedDomainName.f_GetStr(8192+1), &ReferencedDomainNameSize, &AccountType))
+	if (!LookupAccountSid(nullptr, TokenUserInfo.User.Sid, UserName.f_GetStr(8192 + 1), &UserNameSize, ReferencedDomainName.f_GetStr(8192 + 1), &ReferencedDomainNameSize, &AccountType))
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from LookupAccountSid(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 	using namespace ::NMib::NStr;
@@ -276,7 +308,13 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 	{
 		HANDLE ProcessToken;
 		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &ProcessToken))
-			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from OpenProcessToken(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
+		{
+			DMibError
+				(
+					(NMib::NStr::CFStr256::CFormat("Windows returned an error from OpenProcessToken(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr()
+				)
+			;
+		}
 
 		auto Cleanup = g_OnScopeExit / [&]
 			{
@@ -289,7 +327,13 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 
 		NContainer::CByteVector TokenData;
 		if (!GetTokenInformation(ProcessToken, TokenPrimaryGroup, TokenData.f_GetArray(NeededLength), NeededLength, &NeededLength))
-			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
+		{
+			DMibError
+				(
+					(NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr()
+				)
+			;
+		}
 
 		TOKEN_PRIMARY_GROUP &TokenPrimaryInfo = *((TOKEN_PRIMARY_GROUP *)TokenData.f_GetArray());
 
@@ -299,8 +343,26 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 
 		uint32 ReferencedDomainNameSize = 8192;
 		uint32 GroupNameSize = 8192;
-		if (!LookupAccountSid(nullptr, TokenPrimaryInfo.PrimaryGroup, GroupName.f_GetStr(8192 + 1), &GroupNameSize, ReferencedDomainName.f_GetStr(8192+1), &ReferencedDomainNameSize, &AccountType))
-			DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from LookupAccountSid(Get process real group): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
+		if
+		(
+			!LookupAccountSid
+			(
+				nullptr
+				, TokenPrimaryInfo.PrimaryGroup
+				, GroupName.f_GetStr(8192 + 1)
+				, &GroupNameSize
+				, ReferencedDomainName.f_GetStr(8192 + 1)
+				, &ReferencedDomainNameSize
+				, &AccountType
+			)
+		)
+		{
+			DMibError
+				(
+					(NMib::NStr::CFStr256::CFormat("Windows returned an error from LookupAccountSid(Get process real group): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr()
+				)
+			;
+		}
 
 		using namespace ::NMib::NStr;
 		if (ReferencedDomainName.f_IsEmpty())
@@ -340,7 +402,6 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessEffectiveGroupName()
 	return fg_UserManagement_GetProcessRealGroupName();
 }
 
-
 bool NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMib::NStr::CStr &o_ReturnGID)
 {
 	NMib::NStr::CWStr GroupName = NMib::NStr::NPlatform::fg_StrToWindows(_GroupName);
@@ -371,7 +432,13 @@ bool NSys::fg_UserManagement_GroupExists(NMib::NStr::CStr const &_GroupName, NMi
 	if (Status == NERR_GroupNotFound)
 		return false;
 	else if (Status != NERR_Success)
-		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo({}): {}") << GroupName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr());
+	{
+		DMibError
+			(
+				(NMib::NStr::CFStr256::CFormat("Windows returned an error from NetLocalGroupGetInfo({}): {}") << GroupName << NMib::NPlatform::fg_Win32_GetLastErrorStr(Status)).f_GetStr()
+			)
+		;
+	}
 
 	o_ReturnGID = _GroupName;
 	return true;
@@ -449,7 +516,7 @@ NMib::NContainer::TCVector<NMib::NStr::CStr> NSys::fg_UserManagement_UserGetMemb
 
 	LOCALGROUP_USERS_INFO_0 *pEntries = (LOCALGROUP_USERS_INFO_0 *)pData;
 
-	NMib::NContainer::TCVector<NMib::NStr::CStr>  Return;
+	NMib::NContainer::TCVector<NMib::NStr::CStr> Return;
 	for (umint i = 0; i < EntriesRead; ++i)
 		Return.f_Insert(NMib::NStr::CWStr(pEntries[i].lgrui0_name));
 

@@ -18,5 +18,5 @@ namespace NMib::NSecurity
 }
 
 #ifndef DMibPNoShortCuts
-	using namespace NMib::NSecurity;
+using namespace NMib::NSecurity;
 #endif
