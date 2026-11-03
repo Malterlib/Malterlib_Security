@@ -9,9 +9,8 @@ using namespace NMib::NStr;
 
 namespace
 {
-	class CUser_Tests : public NMib::NTest::CTest
+	struct CUser_Tests : public NMib::NTest::CTest
 	{
-	public:
 		void f_DoTests()
 		{
 			using namespace NMib::NSys;

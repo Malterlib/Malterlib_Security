@@ -7,9 +7,8 @@ using namespace NMib;
 
 namespace
 {
-	class CSecurePassword_Tests : public NMib::NTest::CTest
+	struct CSecurePassword_Tests : public NMib::NTest::CTest
 	{
-	public:
 		void f_DoTests()
 		{
 			if (!NSys::fg_SecurePassword_Supported() || NSys::fg_SecurePassword_IsLocked())
