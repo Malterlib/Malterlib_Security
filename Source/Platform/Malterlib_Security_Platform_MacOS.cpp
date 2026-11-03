@@ -100,7 +100,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 	if (Status == errSecDuplicateItem)
 	{ // Already exists, try changing the existing entry.
 
-		SecKeychainItemRef ItemRef = nullptr;
+		SecKeychainItemRef pItemRef = nullptr;
 		void *pExistingPassword = nullptr;
 		UInt32 nExistingPasswordBytes = 0;
 
@@ -113,7 +113,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 				, Key.f_GetStr() // Account name
 				, &nExistingPasswordBytes // Password len.
 				, &pExistingPassword // Password
-				, &ItemRef // the item reference
+				, &pItemRef // the item reference
 			)
 		;
 
@@ -128,13 +128,13 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Store(NMib::NStr::CStr
 
 			if (bPasswordEqual)
 			{
-				CFRelease(ItemRef);
+				CFRelease(pItemRef);
 				return ESecurePassword_OK; // Password is already correct.
 			}
 
-			Status = SecKeychainItemModifyAttributesAndData(ItemRef, nullptr, Password.f_GetLen(), Password.f_GetStr());
+			Status = SecKeychainItemModifyAttributesAndData(pItemRef, nullptr, Password.f_GetLen(), Password.f_GetStr());
 
-			CFRelease(ItemRef);
+			CFRelease(pItemRef);
 
 			ESecurePassword Ret = fg_SecurePassword_Decode_OSStatus(Status);
 			if (Ret == ESecurePassword_Failure)
@@ -163,7 +163,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 	NMib::NStr::CStr Key = _Key;
 
 	OSStatus Status;
-	SecKeychainItemRef ItemRef = nullptr;
+	SecKeychainItemRef pItemRef = nullptr;
 
 	Status = SecKeychainFindGenericPassword
 		(
@@ -174,15 +174,15 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 			, Key.f_GetStr() // Account name
 			, 0 // Password len.
 			, nullptr // Password
-			, &ItemRef // the item reference
+			, &pItemRef // the item reference
 		)
 	;
 
 	if (Status == noErr)
 	{
-		Status = SecKeychainItemDelete(ItemRef);
+		Status = SecKeychainItemDelete(pItemRef);
 
-		CFRelease(ItemRef);
+		CFRelease(pItemRef);
 
 		return fg_SecurePassword_Decode_OSStatus(Status);
 	}
@@ -209,7 +209,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 	UInt32 nPasswordBytes = 0;
 
 	OSStatus Status;
-	SecKeychainItemRef ItemRef = nullptr;
+	SecKeychainItemRef pItemRef = nullptr;
 
 	Status = SecKeychainFindGenericPassword
 		(
@@ -220,7 +220,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 			, Key.f_GetStr() // Account name
 			, &nPasswordBytes // Password len.
 			, &pPassword // Password
-			, &ItemRef // the item reference
+			, &pItemRef // the item reference
 		)
 	;
 
@@ -232,7 +232,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 
 		SecKeychainItemFreeContent(NULL, pPassword);
 
-		CFRelease(ItemRef);
+		CFRelease(pItemRef);
 
 		return ESecurePassword_OK;
 	}
@@ -256,7 +256,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 	NMib::NStr::CStr Key = _Key;
 
 	OSStatus Status;
-	SecKeychainItemRef ItemRef = nullptr;
+	SecKeychainItemRef pItemRef = nullptr;
 
 	Status = SecKeychainFindGenericPassword
 		(
@@ -267,13 +267,13 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Exists(NMib::NStr::CSt
 			, Key.f_GetStr() // Account name
 			, 0 // Password len.
 			, nullptr // Password
-			, &ItemRef // the item reference
+			, &pItemRef // the item reference
 		)
 	;
 
 	if (Status == noErr)
 	{
-		CFRelease(ItemRef);
+		CFRelease(pItemRef);
 		return ESecurePassword_OK;
 	}
 	else

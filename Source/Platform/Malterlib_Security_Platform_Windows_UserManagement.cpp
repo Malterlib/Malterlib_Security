@@ -230,21 +230,21 @@ bool NMib::NSys::fg_UserManagement_IsValidName(NMib::NStr::CStr const &_Name)
 
 NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealUser()
 {
-	HANDLE ProcessToken;
-	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &ProcessToken))
+	HANDLE pProcessToken;
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &pProcessToken))
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from OpenProcessToken(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 	auto Cleanup = g_OnScopeExit / [&]
 		{
-			CloseHandle(ProcessToken);
+			CloseHandle(pProcessToken);
 		}
 	;
 
 	uint32 NeededLength = 0;
-	GetTokenInformation(ProcessToken, TokenUser, nullptr, 0, &NeededLength);
+	GetTokenInformation(pProcessToken, TokenUser, nullptr, 0, &NeededLength);
 
 	NContainer::CByteVector TokenData;
-	if (!GetTokenInformation(ProcessToken, TokenUser, TokenData.f_GetArray(NeededLength), NeededLength, &NeededLength))
+	if (!GetTokenInformation(pProcessToken, TokenUser, TokenData.f_GetArray(NeededLength), NeededLength, &NeededLength))
 		DMibError((NMib::NStr::CFStr256::CFormat("Windows returned an error from GetTokenInformation(Get process real user): {}") << NMib::NPlatform::fg_Win32_GetLastErrorStr()).f_GetStr());
 
 	TOKEN_USER &TokenUserInfo = *((TOKEN_USER *)TokenData.f_GetArray());
@@ -306,8 +306,8 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 	}
 
 	{
-		HANDLE ProcessToken;
-		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &ProcessToken))
+		HANDLE pProcessToken;
+		if (!OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &pProcessToken))
 		{
 			DMibError
 				(
@@ -318,15 +318,15 @@ NMib::NStr::CStr NSys::fg_UserManagement_GetProcessRealGroup()
 
 		auto Cleanup = g_OnScopeExit / [&]
 			{
-				CloseHandle(ProcessToken);
+				CloseHandle(pProcessToken);
 			}
 		;
 
 		uint32 NeededLength = 0;
-		GetTokenInformation(ProcessToken, TokenPrimaryGroup, nullptr, 0, &NeededLength);
+		GetTokenInformation(pProcessToken, TokenPrimaryGroup, nullptr, 0, &NeededLength);
 
 		NContainer::CByteVector TokenData;
-		if (!GetTokenInformation(ProcessToken, TokenPrimaryGroup, TokenData.f_GetArray(NeededLength), NeededLength, &NeededLength))
+		if (!GetTokenInformation(pProcessToken, TokenPrimaryGroup, TokenData.f_GetArray(NeededLength), NeededLength, &NeededLength))
 		{
 			DMibError
 				(
