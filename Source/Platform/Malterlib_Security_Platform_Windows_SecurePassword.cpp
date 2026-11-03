@@ -126,7 +126,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Remove(NMib::NStr::CSt
 	return NMib::NSys::ESecurePassword_OK;
 }
 
-NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr const &_Key, NMib::NStr::CStrSecure &_oPassword)
+NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr const &_Key, NMib::NStr::CStrSecure &o_Password)
 {
 	auto &SubSystem = *g_SubSystem_Security_Platform_Windows_SecurePassword;
 	DMibSafeCheck(!SubSystem.m_SecurePasswordLocation.f_IsEmpty(), "You must have set the location for secure passwords.");
@@ -192,7 +192,7 @@ NMib::NSys::ESecurePassword NMib::NSys::fg_SecurePassword_Get(NMib::NStr::CStr c
 		return NMib::NSys::ESecurePassword_Failure;
 	}
 
-	_oPassword = NMib::NStr::CStrSecure((char *)DataOut.pbData, DataOut.cbData);
+	o_Password = NMib::NStr::CStrSecure((char *)DataOut.pbData, DataOut.cbData);
 
 	return NMib::NSys::ESecurePassword_OK;
 }
